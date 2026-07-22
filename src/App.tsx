@@ -9,6 +9,7 @@ import ValidationPanel from "./components/ValidationPanel";
 import CoveragePanel from "./components/CoveragePanel";
 import PaperVisibilityToggle from "./components/PaperVisibilityToggle";
 import SetOverlaySelector from "./components/SetOverlaySelector";
+import OpenSourceNotices from "./components/OpenSourceNotices";
 import { hasAxisValue } from "./lib/axisRegistry";
 import { computeSetOverlay, type SetOverlaySelection } from "./lib/setAxisEngine";
 import type { EdgeRelationDetail } from "./lib/edgeDetail";
@@ -177,6 +178,12 @@ export default function App() {
             <summary>커버리지</summary>
             <div className="disclosure-body">
               <CoveragePanel nodes={visibleNodes} overlay={overlayResult} />
+            </div>
+          </details>
+          <details className="disclosure">
+            <summary>오픈소스 사용 현황</summary>
+            <div className="disclosure-body">
+              <OpenSourceNotices />
             </div>
           </details>
         </aside>

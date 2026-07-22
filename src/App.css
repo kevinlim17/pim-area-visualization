@@ -204,6 +204,68 @@ body.is-resizing-panels * {
   margin-top: 10px;
 }
 
+.open-source-notices > p {
+  margin: 0;
+  color: #78766c;
+  font-size: var(--text-caption);
+  line-height: var(--leading-body);
+}
+
+.open-source-notices ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.open-source-notices li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1px 8px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--text-caption);
+}
+
+.open-source-notices li a {
+  min-width: 0;
+  color: var(--text);
+  text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  text-underline-offset: 2px;
+}
+
+.open-source-notices li a:hover {
+  color: var(--accent);
+}
+
+.open-source-version {
+  margin-left: 4px;
+  color: #9c9a92;
+  font-variant-numeric: tabular-nums;
+}
+
+.open-source-license {
+  color: #365c56;
+  font-weight: 600;
+}
+
+.open-source-notices li small {
+  grid-column: 1 / -1;
+  color: #78766c;
+  font-size: var(--text-caption);
+}
+
+.open-source-notices .open-source-project-license {
+  padding-top: 2px;
+}
+
+.open-source-project-license a {
+  color: var(--accent);
+  text-underline-offset: 2px;
+}
+
 .axis-selector h2 {
   font-size: var(--text-body);
   margin: 0 0 6px;
