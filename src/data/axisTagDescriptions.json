@@ -1,0 +1,368 @@
+{
+  "_comment": "학부생 수준 용어 설명. axis-taxonomy.md v1.3(통제어휘 정의)과 survey-anchors.md([S1] Mutlu Modern Primer 2020, [S2] Asifuzzaman survey 2023 — pim/skills/pim-paper-12axis-digest/references/)를 근거로 작성. app/src/data/axisTaxonomy.ts의 describeTaxonomyTag()가 이 파일을 조회한다.",
+  "1_location": {
+    "axis": "연산 회로가 메모리 계층 구조에서 정확히 어느 위치에 놓이는지를 나타냅니다. DRAM은 셀(cell) → 서브어레이 → 뱅크(bank) → 칩 순으로 계층을 이루는데(survey-anchors §2), 연산 로직을 계층의 안쪽(셀에 가까움)에 둘수록 대역폭 이득은 크지만 회로 변경 범위도 커집니다.",
+    "tags": {
+      "Cell": "DRAM 셀 하나는 트랜지스터 1개와 커패시터 1개로 이뤄져 전하 유무로 0/1을 저장합니다(survey-anchors §2). 이 태그는 셀 자체의 물리적 충전·방전 동작을 직접 연산에 이용하는 경우입니다.",
+      "DataArray": "여러 셀이 워드라인·비트라인으로 얽혀 만든 2차원 격자(crossbar 등)를 그대로 연산 유닛처럼 씁니다. 예를 들어 저항 값을 행렬 원소로 매핑해 곱셈-누산을 물리적으로 수행합니다.",
+      "RowBuffer": "DRAM은 행을 읽을 때 그 행 전체를 먼저 '행 버퍼(row buffer)'로 복사한 뒤 원하는 열을 골라냅니다(survey-anchors §2, ACT→READ 절차). 이 버퍼 안의 sense amplifier에서 비트 연산을 수행하는 경우입니다.",
+      "Subarray": "뱅크 하나는 여러 서브어레이로 나뉩니다. 이 태그는 서브어레이 단위로 로직을 추가하거나, 서브어레이 사이의 데이터 이동 경로에서 연산하는 경우입니다.",
+      "Periphery": "뱅크를 둘러싼 열 디코더·글로벌 sense amplifier·I/O 게이팅 같은 주변 회로에 연산 로직을 추가한 경우입니다. 셀 배열 자체는 바꾸지 않아 상대적으로 변경 범위가 작습니다.",
+      "Bank": "DRAM 칩은 여러 뱅크로 나뉘어 있고 뱅크마다 독립적으로 접근할 수 있습니다. 이 태그는 뱅크마다 처리 유닛(near-bank PU)을 두어 뱅크 단위 병렬성을 활용하는 경우입니다.",
+      "LogicDie": "HBM처럼 여러 DRAM 다이를 쌓은 3D 스택 메모리는 맨 아래에 로직 전용 다이(base logic layer)를 둡니다(survey-anchors §3). 이 다이에 연산 유닛을 넣는 경우입니다.",
+      "BufferChip": "UPMEM처럼 표준 DIMM 위의 버퍼 칩이나 레지스터 클럭 드라이버 위치에 연산 로직을 넣는 경우입니다. 기존 DIMM 폼팩터를 유지할 수 있다는 장점이 있습니다.",
+      "MemoryController": "호스트 CPU 쪽 메모리 컨트롤러 내부에 연산이나 스케줄링 로직을 추가하는 경우입니다. 메모리 칩 자체는 바꾸지 않습니다.",
+      "NearMemDevice": "메모리와 물리적으로 인접하지만 별도인 장치(실리콘 인터포저 위 가속기, CXL 타입-2 장치 등)에서 연산합니다. HMC의 vault 컨트롤러(survey-anchors §3)가 대표적 예입니다.",
+      "SameDie-Processor": "IRAM류 원형 설계처럼 DRAM 공정과 로직 공정을 한 다이에 합치고, 메모리를 그 프로세서가 쓰는 로컬 자원으로 취급합니다. 위계가 없다는 점에서 다른 위치 태그들과 성격이 다릅니다.",
+      "SameDie-Peer": "Smart Memories류처럼 프로세서 타일과 메모리 타일을 대등한 자격으로 한 다이에 나란히 배치합니다. 호스트-디바이스 구분 자체가 없습니다.",
+      "HostOnly": "새 하드웨어를 제안하지 않고, 이미 존재하는 PIM 장치를 대상으로 컴파일러·스케줄러·설계공간 탐색 같은 소프트웨어·방법론만 다루는 논문입니다."
+    }
+  },
+  "2a_approach": {
+    "axis": "메모리 내부에서 연산하는 두 큰 방식 중 어느 쪽인지 구분합니다. PUM은 메모리 회로의 물리 동작 자체를 계산에 쓰고, PNM은 메모리 옆에 별도 로직을 붙입니다(survey-anchors §5).",
+    "tags": {
+      "PUM": "Processing Using Memory. 셀이나 셀 배열의 물리적 동작(전하 공유, 저항 상태 변화 등)을 그대로 연산에 활용합니다. 회로 변경은 적지만 할 수 있는 연산 종류가 대량 복사·비트 연산·단순 산술 등으로 제한됩니다(survey-anchors §5).",
+      "PNM": "Processing Near Memory. 메모리 가까이에 가산기나 소형 코어 같은 별도 연산 로직을 추가합니다. PUM보다 자유롭게 프로그램할 수 있지만 그만큼 하드웨어 변경 폭이 큽니다.",
+      "Hybrid": "한 시스템 안에서 PUM과 PNM을 함께 사용합니다. 예를 들어 대량 비트 연산은 PUM으로, 복잡한 제어 흐름은 PNM 코어로 나눠 처리합니다.",
+      "Agnostic": "특정 PUM·PNM 구현에 종속되지 않는 소프트웨어나 방법론 논문입니다. 예를 들어 컴파일러 기법이 여러 종류의 PIM 장치에 공통으로 적용될 때 씁니다."
+    }
+  },
+  "2b_technology": {
+    "axis": "논문이 전제하거나 실제로 구현한 메모리 소자·제품군을 나타냅니다. 기술마다 셀 구조와 접근 방식이 달라 어떤 연산이 자연스러운지가 달라집니다(survey-anchors §4, §8).",
+    "tags": {
+      "CommodityDRAM": "표준 DDR3/4/5 DRAM입니다. 기존 생산 라인을 그대로 쓸 수 있어 변경 최소화가 강점으로 강조되는 경우가 많습니다.",
+      "eDRAM": "로직 공정 다이 위에 임베드된 DRAM으로, 별도 메모리 칩이 아니라 로직과 한 다이에 통합된 형태입니다.",
+      "HBM": "DRAM 다이 여러 장을 로직 다이 위에 3D로 쌓은 스택 메모리입니다. 각 채널이 pseudo-channel 두 개로 나뉘며 실리콘 인터포저를 통해 매우 넓은 폭(1024비트급)으로 연결됩니다(survey-anchors §3).",
+      "HMC": "HBM과 마찬가지로 3D 스택이지만, 다이를 수직으로 묶은 'vault' 단위로 나누고 vault 컨트롤러가 고속 SerDes 기반 패킷 프로토콜로 통신합니다(survey-anchors §3).",
+      "LPDDR": "모바일 기기용 저전력 DDR DRAM입니다. 배터리 제약이 있는 환경의 PIM 논문에서 전제로 등장합니다.",
+      "GDDR": "그래픽 카드용으로 최적화된 고대역폭 DRAM입니다.",
+      "UPMEM": "DDR4 DIMM 폼팩터에 소형 범용 코어(DPU)를 내장한 상용 PIM 제품입니다. 칩마다 DPU 8개, DPU마다 64MB DRAM 뱅크·24KB 명령 메모리·64KB 스크래치패드를 갖습니다(survey-anchors §7).",
+      "SRAM": "캐시에 흔히 쓰이는 정적 메모리입니다. 셀이 크고 비싸지만 빠르고 파괴적 읽기가 없어, 캐시 내부 연산(compute-in-cache) 논문에서 등장합니다.",
+      "ReRAM": "두 금속 전극 사이 절연체에 전도성 필라멘트를 만들었다 없앴다 하며 저항 상태를 바꾸는 소자입니다. crossbar 구조가 행렬-벡터 곱에 잘 맞아 아날로그 PUM에 자주 쓰입니다(survey-anchors §4).",
+      "PCM": "상변화 물질(결정질↔비정질)의 저항 차이로 값을 저장합니다. 상태를 결정질로 바꾸는 SET 동작이 느리고 내구성이 낮아 고성능 주메모리로는 잘 안 씁니다(survey-anchors §4).",
+      "STT-MRAM": "자성체 두 층 사이의 자화 방향 일치·불일치로 저·고저항을 만드는 소자(MTJ)입니다. 어레이 구조가 DRAM과 비슷해 DRAM 대체재로 논의됩니다(survey-anchors §4).",
+      "FeFET": "강유전체 물질을 게이트에 쓴 트랜지스터로, 문턱전압을 조정해 정보를 저장하는 신흥 소자입니다.",
+      "NVM-generic": "특정 비휘발성 메모리 종류를 못박지 않고 신흥 소자 일반에 적용 가능하다고 주장하는 경우입니다.",
+      "CXL-attached": "CXL(Compute Express Link) 인터페이스로 호스트에 연결되는 메모리 확장 장치입니다."
+    }
+  },
+  "3_programmability": {
+    "axis": "PIM 유닛이 고정된 한 가지 연산만 하는지, 아니면 범용 코드를 실행할 수 있는지를 나타냅니다. 하드웨어가 '무엇을 할 수 있는가'를 다루며, '그것을 어떻게 시키는가'를 다루는 8번 축(SW Stack)과 짝을 이룹니다.",
+    "tags": {
+      "FixedFunction": "정해진 연산(예: 곱셈-누산)만 수행하고 재프로그래밍할 수 없습니다. 특정 신경망 레이어 전용 가속기가 대표적입니다.",
+      "ConfigurableFixed": "연산 종류 자체는 고정이지만 타일 크기·정밀도 같은 파라미터는 레지스터로 조정할 수 있습니다.",
+      "ISAExtension": "호스트 프로세서의 명령어 집합(ISA)에 PIM 전용 명령어를 추가하는 방식입니다(예: PEI, RISC-V 커스텀 확장).",
+      "SIMDLanes": "여러 데이터를 한 명령으로 동시에 처리하는 벡터 lane과 소규모 명령어 집합을 갖춥니다. 삼성 HBM-PIM류가 이 형태입니다.",
+      "ProgrammableCore": "범용 명령어 집합의 부분집합을 실행할 수 있는 소형 코어입니다. UPMEM DPU(순차 실행 RISC 코어)가 대표 사례입니다.",
+      "Reconfigurable": "FPGA·CGRA처럼 연산 로직 자체의 배선·구성을 바꿀 수 있습니다. 재구성 대상이 연산 로직인지 메모리 구조인지 인터커넥트인지에 따라 실제 설계가 크게 달라집니다."
+    }
+  },
+  "4a_parallelism": {
+    "axis": "논문이 주로 활용하는 병렬 실행의 단위(granularity)를 나타냅니다. 같은 칩 안에서도 셀부터 여러 장치까지 병렬성을 얻을 수 있는 층위가 여러 개 있습니다.",
+    "tags": {
+      "Cell": "셀 단위로 동시에 동작을 일으켜 병렬성을 얻습니다(예: 한 행 전체의 비트 연산).",
+      "Subarray": "서브어레이 여러 개를 동시에 활용합니다.",
+      "Bank": "뱅크마다 독립적인 처리 유닛을 병렬로 돌립니다.",
+      "PseudoChannel": "HBM 채널 하나를 다시 둘로 나눈 pseudo-channel 단위 병렬성입니다(survey-anchors §3).",
+      "Channel": "메모리 채널 단위 병렬성입니다.",
+      "Vault": "HMC의 수직 파티션 묶음인 vault 단위 병렬성입니다(survey-anchors §3).",
+      "Rank": "같은 채널을 공유하는 DRAM 랭크 단위 병렬성입니다.",
+      "Die": "3D 스택 안의 개별 DRAM 다이 단위 병렬성입니다.",
+      "Stack": "3D 스택 전체를 하나의 병렬 단위로 취급합니다.",
+      "Module": "DIMM 모듈 단위 병렬성입니다.",
+      "MultiDevice": "여러 개의 PIM 장치(칩)를 동시에 활용하는 시스템 수준 병렬성입니다."
+    }
+  },
+  "4b_offload": {
+    "axis": "호스트가 PIM에 한 번에 넘기는(또는 PIM에 상주시키는) 작업의 크기를 나타냅니다. 입도가 클수록 통신 오버헤드는 줄지만 세밀한 제어와 코히런시는 어려워집니다(survey-anchors §6.4).",
+    "tags": {
+      "Instruction": "명령어 하나 단위로 오프로드합니다. PEI(PIM-Enabled Instructions)류가 대표적이며, 세밀한 연산에는 맞지만 큰 작업에는 호스트-PIM 간 잦은 교신 때문에 오버헤드가 커질 수 있습니다(survey-anchors §6.4).",
+      "Sub-Operator": "텐서 연산자 하나를 더 작은 차원이나 타일로 쪼개 일부만 PIM으로 보냅니다.",
+      "Operator": "행렬-벡터 곱 같은 연산자(커널) 하나를 통째로 오프로드합니다.",
+      "Function": "함수 단위로 오프로드합니다.",
+      "Kernel": "GPU식 커널 단위로 오프로드합니다.",
+      "Application": "애플리케이션 전체를 PIM에 상주시키되, 여전히 호스트가 '이건 PIM으로 보낸다'고 결정하는 구조는 유지합니다.",
+      "NoOffload-Resident": "애초에 호스트-PIM 경계가 없어(주로 위치 축이 SameDie-*) 오프로드라는 개념 자체가 성립하지 않는 경우입니다.",
+      "BulkData": "개별 연산 단위가 아니라 데이터 블록 전체(RowClone, 대량 비트 연산 등)를 대상으로 삼습니다."
+    }
+  },
+  "4c_data_gran": {
+    "axis": "한 번의 PIM 연산이나 데이터 이동이 다루는 데이터 단위 크기를 나타냅니다.",
+    "tags": {
+      "Bit": "비트 단위 연산입니다(예: bit-serial 곱셈).",
+      "Byte": "바이트 단위입니다.",
+      "Word": "CPU 레지스터 폭 정도의 워드 단위입니다.",
+      "Vector": "여러 원소를 묶은 벡터 단위입니다.",
+      "CacheLine": "캐시 라인 크기(보통 64바이트) 단위입니다.",
+      "DRAMRow": "DRAM 한 행 전체(수 KB) 단위입니다.",
+      "Page": "메모리 페이지(보통 4KB 이상) 단위입니다.",
+      "Tensor": "신경망 텐서 전체를 한 단위로 다룹니다."
+    }
+  },
+  "5a_comm": {
+    "axis": "호스트와 PIM, 또는 PIM 내부 구성요소가 명령·데이터를 주고받는 방식을 나타냅니다.",
+    "tags": {
+      "MemoryMappedIO": "PIM 레지스터를 메모리 주소 공간에 매핑해 일반 load/store로 제어합니다.",
+      "CustomDRAMCommand": "표준 DRAM 명령(ACT/READ 등)을 확장하거나 새 명령을 추가해 통신합니다.",
+      "ISAInstruction": "호스트 ISA에 추가된 전용 명령어로 통신합니다.",
+      "PacketProtocol": "HMC처럼 SerDes 기반 패킷 프로토콜로 통신합니다(survey-anchors §3).",
+      "DMA": "DMA(Direct Memory Access) 엔진으로 CPU 개입 없이 데이터를 옮깁니다.",
+      "SharedMemory": "일반 공유 메모리 접근으로 통신합니다.",
+      "MessagePassing": "코히런스를 포기하는 대신 명시적 메시지 전달로 통신합니다.",
+      "NoC-Mesh": "타일들이 온칩 2차원 mesh network-on-chip으로 통신합니다.",
+      "CXL.mem": "CXL.mem 프로토콜로 통신합니다."
+    }
+  },
+  "5b_coherency": {
+    "axis": "호스트 캐시에 있는 값과 PIM이 보는 메모리 값을 얼마나, 어떻게 최신 상태로 맞추는지를 나타냅니다. 세밀한 코히런스는 프로그래밍은 쉽지만 코히런스 메시지가 좁은 메모리 버스를 잠식해 PIM의 대역폭 이득을 갉아먹을 수 있다는 딜레마가 있습니다(survey-anchors §6.5).",
+    "tags": {
+      "HW-Coherent-FineGrained": "MESI 같은 캐시 블록 단위 코히런스 프로토콜을 PIM까지 그대로 확장합니다. 프로그래밍은 단순하지만 코히런스 트래픽이 급증할 수 있습니다.",
+      "HW-Coherent-Coarse": "리전이나 페이지 단위로 코히런스를 유지해 메시지 수를 줄이지만, 그만큼 불필요한 무효화(false sharing)가 생길 수 있습니다.",
+      "Speculative": "CoNDA류처럼 코히런스 권한을 투기적으로 먼저 획득해 실행하고, 이후 압축된 시그니처로 위반 여부를 검증합니다(survey-anchors §6.5).",
+      "SW-Managed-Flush": "오프로드 전후에 프로그래머나 컴파일러가 명시적으로 캐시를 플러시·무효화합니다.",
+      "UncacheableRegion": "PIM이 다루는 메모리 영역을 아예 캐시 불가로 예약해 코히런스 문제 자체를 회피합니다.",
+      "NoCoherence": "코히런스를 제공하지 않고 메시지 패싱 스타일 프로그래밍을 강제합니다.",
+      "Host-Driven-NoAutonomousWrite": "호스트가 모든 연산을 명령하고 결과도 직접 읽어가, PIM이 스스로 메모리에 쓰지 않으므로 코히런스 문제의 주체 자체가 없습니다. 상용 명령 구동형 PIM(Samsung HBM-PIM, UPMEM 호스트 구동 모드 등)의 지배적 패턴입니다.",
+      "GPU-L2-WriteThrough": "[v1.4 예외적 승격 — 현재 PIMFlow 한 편에서만 관찰] GPU의 L2 캐시 정책을 write-through로 바꿔 dirty(수정됐지만 아직 메모리에 반영 안 된) 캐시 라인 자체가 생기지 않게 만드는 회피책입니다. 새 코히런스 프로토콜을 설계하는 대신 캐시 정책만 바꿔 문제를 없앤 특수 사례라, axis-taxonomy.md는 원래 이를 '일회성 예외(승격 안 함)'로 분류했습니다.",
+      "ConfigurableCoherence": "코히런스 프로토콜 자체를 재구성 대상으로 두어, 설계자가 배선·모드로 프로토콜을 바꿀 수 있게 합니다."
+    }
+  },
+  "5c_consistency": {
+    "axis": "호스트와 PIM이 서로의 메모리 연산 순서를 어떤 규칙으로 관찰하는지를 나타냅니다. 대부분의 PIM 논문은 이를 명시하지 않아 추정치로 기록되는 경우가 많습니다.",
+    "tags": {
+      "SequentialConsistency": "모든 프로세서가 모든 메모리 연산을 프로그램 순서 그대로, 전역적으로 동일한 순서로 관찰한다고 보장합니다(가장 엄격).",
+      "TSO": "Total Store Order. x86류가 채택한 모델로, 저장 연산의 순서를 약간 완화합니다.",
+      "RelaxedWithFences": "기본적으로 순서를 느슨하게 두되 명시적 펜스(barrier) 명령으로 필요한 곳만 순서를 강제합니다.",
+      "ReleaseConsistency": "락 획득(acquire)·해제(release) 시점에서만 동기화를 보장하는 모델입니다.",
+      "KernelBoundarySync": "커널(오프로드 단위) 경계에서만 동기화를 맞추는, PIM 논문에서 흔한 암묵적 모델입니다."
+    }
+  },
+  "6a_workload_analysis": {
+    "axis": "어떤 코드가 PIM에 적합한지 논문이 실제로 정량 측정했는지, 아니면 그냥 서술로 넘어갔는지를 나타냅니다. [S2]가 정리한 좋은 PIM 후보 기준은 메모리 지역성이 낮고 LLC 미스가 많은 코드입니다(survey-anchors §6.1).",
+    "tags": {
+      "Quantitative-Profiling": "하드웨어 카운터나 프로파일러로 MPKI, arithmetic intensity, LFMR 같은 지표를 직접 측정해 후보를 골랐습니다(survey-anchors §6.1).",
+      "Roofline": "연산 강도(arithmetic intensity) 대비 성능을 나타내는 roofline 모델로 메모리 바운드 여부를 판단했습니다.",
+      "Qualitative": "'메모리 바운드다' 같은 서술적 근거만 제시하고 정량 측정은 하지 않았습니다.",
+      "Assumed": "대상 워크로드를 그냥 전제하고 시작했을 뿐, 왜 PIM에 적합한지 분석하지 않았습니다."
+    }
+  },
+  "6b_workload_class": {
+    "axis": "호스트와 PIM 사이에서 어떤 코드를 어디서 실행할지 누가, 언제 결정하는지를 나타냅니다.",
+    "tags": {
+      "Static-Compiler": "컴파일 시점에 컴파일러가 배치를 결정합니다.",
+      "Static-Programmer": "프로그래머가 소스 코드 수준에서 직접 배치를 지정합니다.",
+      "Profile-Guided": "사전 프로파일링 결과를 바탕으로 배치를 결정합니다.",
+      "Runtime-Dynamic": "실행 중 런타임 시스템이 그때그때 배치를 바꿉니다.",
+      "HW-Predictor": "전용 하드웨어 예측기가 실행 위치를 판단합니다(survey-anchors §6.3의 지역성 감시 사례 등).",
+      "Search-Based": "탐색 알고리즘(유전 알고리즘, 강화학습 등)으로 배치나 설계점을 찾습니다. 주로 설계공간 탐색(DSE) 논문에서 등장합니다.",
+      "None": "호스트-PIM 배치를 나누는 판정 로직 자체가 없습니다."
+    }
+  },
+  "7a_solved": {
+    "axis": "논문이 실제로 해결했다고 정량 근거와 함께 주장하는 병목을 나타냅니다. 이 축은 이 문서 전체에서 가장 중요합니다 — 태그만 보지 말고 반드시 근거 수치를 확인해야 합니다.",
+    "tags": {
+      "OffChipBandwidth": "칩과 메모리 사이(off-chip) 데이터 전송 대역폭 병목을 줄였습니다.",
+      "MemoryLatency": "메모리 접근 지연을 줄였습니다.",
+      "DataMovementEnergy": "데이터를 옮기는 데 드는 에너지를 줄였습니다 — DRAM에서 연산 유닛까지 데이터를 옮기는 데 드는 에너지가 연산 자체보다 약 100배 크다는 것이 PIM 분야 전체의 출발점입니다(survey-anchors §1).",
+      "CacheThrashing": "캐시를 자주 비우게 만드는 접근 패턴으로 인한 성능 저하를 줄였습니다.",
+      "PointerChasing": "포인터를 따라가는 불규칙 접근(연결 리스트 등)의 지연을 줄였습니다.",
+      "BulkCopyCost": "대량 데이터 복사 비용을 줄였습니다(RowClone류).",
+      "IrregularAccess": "불규칙하고 예측하기 어려운 메모리 접근 패턴의 비효율을 줄였습니다.",
+      "CapacityLimit": "온칩 메모리 용량 제약으로 인한 문제를 완화했습니다.",
+      "ComputeThroughput": "단위 시간당 처리할 수 있는 연산량을 늘렸습니다.",
+      "HostPIMTransfer": "호스트와 PIM 사이 데이터 전송 자체의 비효율을 줄였습니다.",
+      "CommandBandwidth": "데이터 대역폭이 아니라 호스트가 연산을 지시하는 명령·인터페이스 채널의 병목을 줄였습니다. 세밀한 연산일수록 명령 수가 폭증해 이 채널이 병목이 되는데, ganged·complex 명령 같은 최적화가 이를 겨냥합니다.",
+      "ProgrammingBurden": "PIM을 프로그래밍하는 데 드는 개발자 부담을 줄였습니다.",
+      "DesignSpaceCost": "설계공간 탐색에 드는 시간·비용을 줄였습니다(주로 DSE 논문).",
+      "Overfetch": "[v1.4 예외적 승격 — 현재 plug 한 편에서만 관찰] DRAM은 행 전체를 행 버퍼로 끌어올린 뒤 일부만 실제로 쓰는 경우가 흔한데(survey-anchors §2), 이렇게 낭비되는 유효 대역폭 손실을 줄였습니다. gather·희소 접근 PIM 논문에서 반복될 것으로 예상되는 개념입니다.",
+      "PipelineUtilization": "[v1.4 예외적 승격 — 현재 aurora 한 편에서만 관찰] 처리 길이가 서로 다른 요청이 섞이는 이질적 워크로드에서 파이프라인 일부 스테이지가 놀아 전체 처리량이 떨어지는 문제를 해결했습니다.",
+      "WireDelayScaling": "[v1.4 예외적 승격 — 현재 Smart Memories 한 편에서만 관찰] 배선(wire)·게이트의 신호 지연이 트랜지스터 성능만큼 같이 줄어들지 않는 문제를, 리피터에 재구성 로직을 얹어 함께 스케일되게 만들어 해결했습니다. 데이터 이동 '비용'을 재는 다른 병목 태그들과 달리 신호 전달 자체의 물리적 지연 문제입니다."
+    }
+  },
+  "8a_offload_mech": {
+    "axis": "프로그래머·컴파일러·런타임이 실제로 무엇을 통해 PIM 실행을 지시하는지를 나타냅니다. 컴파일러가 관여하면 어느 IR(중간 표현) 층위에서 작업하는지가 특히 중요합니다.",
+    "tags": {
+      "LibraryAPI": "라이브러리 함수 호출로 PIM 실행을 지시합니다.",
+      "IntrinsicsBuiltins": "컴파일러 내장 함수(intrinsic)로 PIM 명령을 직접 호출합니다.",
+      "CompilerPass": "컴파일러의 최적화/코드생성 패스가 자동으로 PIM 코드를 만들어냅니다.",
+      "DSL": "PIM 전용 도메인 특화 언어(DSL)로 프로그램을 작성합니다.",
+      "FrameworkPlugin": "TensorFlow·PyTorch 같은 프레임워크에 플러그인 형태로 통합됩니다.",
+      "DriverRuntime": "디바이스 드라이버나 런타임 라이브러리가 오프로드·데이터 이동을 관리합니다(예: UPMEM 런타임).",
+      "DSE-Tool": "설계공간 탐색(Design Space Exploration) 도구 자체가 오프로드 메커니즘 역할을 합니다 — 코드를 PIM에 내보내는 게 아니라 아키텍처 후보를 생성·평가·가지치기합니다.",
+      "ManualAssembly": "프로그래머가 어셈블리 수준에서 직접 PIM 명령을 작성합니다.",
+      "MemoryController-orchestrated": "[v1.4 예외적 승격 — 현재 Newton 한 편에서만 관찰] 컴파일러·라이브러리 같은 소프트웨어 계층 없이, 호스트 메모리 컨트롤러가 직접 PIM 연산 명령을 발동시킵니다. companion 산업 논문(Samsung ISCA'21)은 정상적인 SW 스택을 갖추고 있어, 이는 일반적인 패턴이 아니라 Newton 고유의 설계 선택으로 확인됐습니다 — axis-taxonomy.md는 원래 이를 '일회성 예외(승격 안 함)'로 분류했습니다."
+    }
+  },
+  "8b_os_runtime": {
+    "axis": "PIM 실행을 위해 운영체제·드라이버·런타임 계층에 어떤 지원이 필요한지를 나타냅니다. [S1]이 꼽은 네 가지 런타임 쟁점은 (1) 무엇을 PIM 근처에서 실행할지, (2) 언제 오프로드할지, (3) 데이터를 여러 모듈에 어떻게 매핑할지, (4) 여러 스레드가 PIM 자원을 어떻게 나눠 쓸지입니다(survey-anchors §6.3).",
+    "tags": {
+      "OS-Modification": "커널 자체를 수정해야 합니다.",
+      "DeviceDriver": "전용 디바이스 드라이버가 필요합니다.",
+      "RuntimeScheduler": "PIM 자원을 스레드/코어 사이에 배분하는 런타임 스케줄러가 필요합니다.",
+      "MemoryAllocator-Custom": "PIM 친화적으로 메모리를 배치하는 커스텀 할당기가 필요합니다.",
+      "SupervisorSoftware": "매핑 제약(예: COPY의 두 피연산자가 같은 서브어레이에 있어야 함)을 처리하는 전용 감독 소프트웨어가 필요합니다(survey-anchors §6.2).",
+      "NoneRequired": "기존 OS·런타임을 그대로 쓸 수 있어 추가 지원이 필요 없습니다."
+    }
+  },
+  "9a_hw_change": {
+    "axis": "기존 메모리 시스템에 요구되는 하드웨어 변경의 범위와 성격을 나타냅니다. MonolithicIntegration처럼 셀은 그대로 두고 로직만 합치는 경우, 비용이 면적이 아니라 웨이퍼 단가·수율·테스트 시간으로 나타난다는 점이 특징입니다.",
+    "tags": {
+      "NoHWChange": "기존 하드웨어를 전혀 바꾸지 않습니다.",
+      "MinimalDRAMChange": "셀 배열은 그대로 두고 주변 회로만 소폭 바꿉니다(RowClone·Ambit류가 강조하는 지점).",
+      "PeripheryAddition": "뱅크 주변 회로에 로직을 추가합니다.",
+      "LogicDieAddition": "3D 스택의 로직 다이에 유닛을 추가합니다.",
+      "MonolithicIntegration": "셀 배열은 그대로 두되 로직을 DRAM 공정과 한 다이에 통합합니다. 오버헤드가 웨이퍼 프리미엄·로직 감속 배율·수율로 나타나는 것이 특징입니다.",
+      "NewMemoryArch": "메모리 구조 자체를 새로 설계합니다.",
+      "NewDevice": "새로운 메모리 소자 기술이 필요합니다."
+    }
+  },
+  "9b_verify": {
+    "axis": "제안한 설계나 모델을 실제로 무엇과 대조해 검증했는지를 나타냅니다.",
+    "tags": {
+      "FPGA-Prototype": "FPGA로 프로토타입을 만들어 검증했습니다.",
+      "ASIC-Tapeout": "실제로 ASIC 칩을 제작(tapeout)해 검증했습니다.",
+      "SPICE-Circuit": "SPICE 회로 시뮬레이션으로 검증했습니다.",
+      "SynthesisOnly": "논리 합성 결과(면적·타이밍 추정치)까지만 확인했습니다.",
+      "RealCommercialPIM": "UPMEM 같은 실제 상용 PIM 하드웨어에서 측정해 검증했습니다.",
+      "SimulationOnly": "시뮬레이터 결과만으로 검증했습니다.",
+      "AnalyticalOnly": "수식·해석 모델로만 검증했습니다."
+    }
+  },
+  "10_application": {
+    "axis": "논문이 평가하거나 가속 대상으로 삼는 대표 응용 분야를 나타냅니다. 최근 연구는 행렬-벡터 곱을 자주 쓰는 ML/AI 도메인에 집중되는 경향이 있습니다(survey-anchors §8).",
+    "tags": {
+      "CNN": "합성곱 신경망. 이미지 인식 등에 쓰입니다.",
+      "RNN-LSTM": "순환 신경망 계열로, 순차 데이터(텍스트, 시계열)를 처리합니다.",
+      "MLP": "다층 퍼셉트론. 완전연결(FC) 층으로만 이뤄진 순수 행렬-벡터 곱 워크로드입니다.",
+      "Transformer-Attention": "트랜스포머의 어텐션 메커니즘입니다. 구간(Attention-Score/Context, FFN, KV-Cache, Prefill/Decode)에 따라 성격이 크게 다릅니다.",
+      "ILGA": "[v1.4 예외적 승격 — 현재 aurora 한 편에서만 관찰] Interleaved Local/Global Attention. 지역(local) 윈도우 어텐션과 전역(global) 토큰 어텐션을 번갈아 계산해 비용을 줄이는 어텐션 변형 패턴입니다. 표준 세그먼트 구분(Score/Context/FFN/KV-Cache/Prefill/Decode)으로는 이 패턴이 포착되지 않아, axis-taxonomy.md는 원래 별도의 'attention-variant 축' 신설을 검토하며 단순 Application 태그 승격은 보류했습니다.",
+      "LLM-Inference": "거대언어모델(LLM) 추론입니다.",
+      "LLM-Training": "거대언어모델 학습입니다.",
+      "Embedding-Recommendation": "추천 시스템의 임베딩 조회·처리입니다(DLRM 등).",
+      "GNN": "그래프 신경망입니다.",
+      "HDC": "초차원 컴퓨팅(Hyperdimensional Computing)입니다.",
+      "GraphProcessing": "일반적인 그래프 알고리즘(BFS, PageRank 등) 처리입니다.",
+      "Database-Query": "데이터베이스 질의 처리입니다.",
+      "ANNS": "[v1.4 예외적 승격 — 현재 plug 한 편에서만 관찰] Approximate Nearest Neighbor Search. 벡터 데이터베이스·RAG 검색에서 정확한 최근접 탐색 대신 근사치를 빠르게 찾는 응용입니다. 그래프 인덱스 순회와 PQ(product quantization) 코드북 조회 특유의 접근 패턴을 가져 일반 Database-Query와는 구분됩니다.",
+      "Genomics": "유전체 분석(서열 정렬 등)입니다.",
+      "TimeSeries": "시계열 데이터 처리입니다.",
+      "SparseLinearAlgebra": "희소 행렬 연산입니다.",
+      "DenseGEMM": "조밀 행렬 곱(GEMM)입니다.",
+      "Cryptography": "암호 연산입니다.",
+      "ImageProcessing": "이미지 처리(신경망이 아닌 고전적 기법 포함)입니다.",
+      "Mobile-Consumer": "모바일·소비자 기기 워크로드입니다. [S1]은 전체 에너지의 30% 이상을 차지하고 MPKI가 10을 넘는 함수를 오프로드 후보로 꼽습니다(survey-anchors §6.1).",
+      "HPC-Stencil": "고성능computing의 스텐실 연산(격자 기반 수치 계산)입니다.",
+      "General-Purpose": "특정 도메인에 한정되지 않는 범용 벤치마크(PrIM 등)입니다."
+    }
+  },
+  "11a_eval_method": {
+    "axis": "성능·전력·면적 수치를 어떤 방법론으로 산출했는지를 나타냅니다.",
+    "tags": {
+      "AnalyticalModel": "수식 기반 해석 모델로 추정했습니다.",
+      "CycleAccurateSim": "사이클 단위로 정확하게 동작을 재현하는 시뮬레이터를 썼습니다.",
+      "TraceDrivenSim": "실행 트레이스를 입력으로 재생하는 시뮬레이터를 썼습니다.",
+      "FullSystemSim": "gem5처럼 OS까지 포함해 전체 시스템을 시뮬레이션했습니다(survey-anchors §7).",
+      "CircuitSim": "회로 수준 시뮬레이션(SPICE 등)으로 산출했습니다.",
+      "SynthesisEstimate": "논리 합성 결과에서 나온 추정치를 썼습니다.",
+      "FPGAEmulation": "FPGA로 에뮬레이션해 측정했습니다.",
+      "RealHardware": "실제 하드웨어에서 직접 측정했습니다.",
+      "Hybrid": "위 방법 여러 가지를 조합했습니다."
+    }
+  },
+  "11b_tools": {
+    "axis": "평가에 사용한 구체적인 시뮬레이터·EDA 도구를 나타냅니다. 상용 PIM 하드웨어가 드물어 이 분야는 시뮬레이터에 크게 의존해 왔습니다(survey-anchors §7).",
+    "tags": {
+      "gem5": "범용 아키텍처 풀시스템 시뮬레이터입니다. DRAMSim2와 함께 쓰여 정확한 메모리 모델링·에너지 분석에 활용됩니다(survey-anchors §7).",
+      "Ramulator": "DRAM 타이밍을 정밀하게 모델링하는 메모리 시뮬레이터입니다.",
+      "Ramulator2": "Ramulator의 후속 버전입니다.",
+      "DRAMSim2": "DRAM 타이밍·전력을 모델링하는 시뮬레이터입니다.",
+      "DRAMSim3": "DRAMSim2의 후속 버전으로, 최신 DRAM 표준을 지원합니다.",
+      "ZSim": "빠른 다중코어 x86 시뮬레이터입니다.",
+      "Sniper": "구간(interval) 기반의 빠른 다중코어 성능 시뮬레이터입니다.",
+      "GPGPU-Sim": "GPU 아키텍처 시뮬레이터입니다.",
+      "Accel-Sim": "GPGPU-Sim을 확장한 GPU 가속기 시뮬레이션 프레임워크입니다.",
+      "NeuroSim": "compute-in-memory 하드웨어의 면적·지연·에너지를 추정하는 시뮬레이터로, 실측 실리콘 데이터로 검증됐습니다(survey-anchors §7).",
+      "CACTI": "SRAM/DRAM 캐시의 접근 시간·면적·전력을 모델링하는 도구입니다.",
+      "SPICE-HSPICE": "회로 수준 정밀 시뮬레이션 도구입니다.",
+      "Synopsys-DC": "RTL을 게이트 수준 회로로 합성하는 상용 EDA 도구(Design Compiler)입니다.",
+      "Cadence": "IC 설계·검증용 상용 EDA 도구 모음입니다.",
+      "MultiPIM": "ZSim+Ramulator 기반으로 멀티스택 인터커넥트·크로스바·PIM 코어 코히런스·가상메모리를 다루는 PIM 시뮬레이터입니다(survey-anchors §7).",
+      "DAMOV": "ZSim+Ramulator 기반으로 광범위한 워크로드를 특성화해 데이터 이동 병목을 식별하는 프레임워크입니다(survey-anchors §7).",
+      "PIMSim": "PIM 명령을 인식·분배하는 프론트엔드 파티셔너를 갖춘 시뮬레이터로, fast/instrument-driven/full-system 세 모드를 지원합니다(survey-anchors §7).",
+      "MPU-Sim": "범용 near-bank 처리 아키텍처용 시뮬레이터로 SIMT 프로그래밍 모델을 지원합니다(survey-anchors §7).",
+      "AttAcc-Sim": "AttAcc 논문이 attention 가속 평가를 위해 만든 자체 시뮬레이터입니다.",
+      "HBM-PIM-Sim": "HBM-PIM 계열 설계 평가를 위한 전용 시뮬레이터입니다.",
+      "In-House": "논문 저자가 자체 제작한, 공개되지 않은 도구입니다.",
+      "Not specified": "어떤 도구를 썼는지 논문에 명시돼 있지 않습니다."
+    }
+  },
+  "11c_validation": {
+    "axis": "평가 결과를 얼마나 강한 근거와 대조했는지를 나타냅니다. 강도 순서는 대략 Unvalidated < PriorFigureReproduction < Vendor-Datasheet < Cross-Simulator < Silicon-Validated 입니다.",
+    "tags": {
+      "Silicon-Validated": "실제 제작된 칩에서 측정한 값과 대조했습니다. 가장 강한 근거입니다.",
+      "Cross-Simulator": "이미 검증된 다른 시뮬레이터와 결과를 교차 대조했습니다.",
+      "Vendor-Datasheet": "제조사 데이터시트에 나온 파라미터를 따랐는지 확인했습니다.",
+      "PriorFigureReproduction": "선행 논문이 공개한 그림(figure)의 값을 재현했을 뿐입니다. Cross-Simulator보다 약한 근거인데, 원 설계가 비공개라 값이 어긋나도 확인할 길이 없기 때문입니다.",
+      "Unvalidated": "검증 절차에 대한 서술이 없습니다. 흔한 경우지만, 보고된 성능 향상치에 그만큼 불확실성이 붙는다는 뜻입니다."
+    }
+  },
+  "11d_baseline": {
+    "axis": "성능·효율 향상을 비교한 기준 시스템을 나타냅니다. baseline의 세대·모델명·연도에 따라 향상치의 의미가 달라집니다.",
+    "tags": {
+      "CPU": "범용 CPU와 비교했습니다.",
+      "GPU": "GPU와 비교했습니다.",
+      "TPU-NPU": "TPU·NPU 같은 AI 전용 가속기와 비교했습니다.",
+      "PriorPIM": "선행 PIM 설계와 비교했습니다.",
+      "IdealMemory": "지연·대역폭 제약이 없는 이상적 메모리를 가정한 상한과 비교했습니다.",
+      "EmulatedOriginal": "에뮬레이션·매핑 논문에서, 자신이 흉내내려는 기존 아키텍처(원본)와 비교합니다. 이 경우 속도 향상보다 '손실의 원인을 얼마나 잘 설명하는가'가 핵심 질문이 됩니다.",
+      "NoBaseline": "비교 기준이 없습니다."
+    }
+  },
+  "12a_translation": {
+    "axis": "애플리케이션이 쓰는 가상 주소를 PIM이 실제로 접근할 물리 주소로 바꾸는 방식을 나타냅니다. PIM 엔진에 일반적인 TLB+페이지워커를 그대로 복제하는 방법은 (1) 호스트-메모리 측 TLB 코히런스 유지, (2) 저장·복잡도 오버헤드, (3) 서로 다른 CPU 아키텍처와의 호환성이라는 세 가지 이유로 어렵습니다(survey-anchors §6.2).",
+    "tags": {
+      "HostTLB": "호스트의 TLB·페이지워커에 그대로 의존합니다.",
+      "PIM-side-TLB": "메모리 측에 TLB를 복제해 둡니다. 호스트와의 코히런스 문제가 생깁니다.",
+      "PIM-side-PageWalker": "메모리 측에 전용 페이지 워커를 둡니다. IMPICA가 이 방식으로 리전 기반 페이지 테이블과 결합해 포인터 추적 성능을 크게 개선했습니다(survey-anchors §6.2).",
+      "RegionBasedPageTable": "IMPICA류처럼 PIM 가속에 최적화된 리전 기반 페이지 테이블을 씁니다.",
+      "PhysicallyContiguous-Reserved": "부팅 시 물리적으로 연속된 영역을 미리 예약해 번역 자체를 회피합니다(Samsung PIM 계열, survey-anchors §6.2).",
+      "IdentityMapped": "가상 주소와 물리 주소를 같게 둡니다.",
+      "SegmentBased": "세그먼트 단위로 주소를 관리합니다."
+    }
+  },
+  "12b_mapping": {
+    "axis": "피연산자(데이터)를 같은 뱅크·서브어레이 등에 배치하는 방식을 나타냅니다. 많은 PIM 연산은 '두 피연산자가 같은 서브어레이에 있어야 한다' 같은 물리적 제약을 가지며, 이는 논문에서 한 줄로 지나가지만 실제로는 시스템 소프트웨어 전체를 바꿔야 하는 요구사항입니다(survey-anchors §6.2).",
+    "tags": {
+      "DefaultInterleaving": "일반 시스템의 기본 인터리빙 방식을 그대로 씁니다.",
+      "PIM-Aware-Interleaving": "PIM 연산에 유리하도록 데이터를 뱅크·채널에 걸쳐 특별히 배치하는 인터리빙입니다.",
+      "SubarrayAligned": "같은 서브어레이 안에 피연산자를 정렬해 배치합니다(COPY 같은 연산의 물리적 제약을 만족시키기 위함, survey-anchors §6.2).",
+      "BankAligned": "같은 뱅크 안에 피연산자를 정렬해 배치합니다.",
+      "ChannelPartitioned": "채널 단위로 데이터를 분할해 배치합니다.",
+      "Custom-Allocator": "PIM 배치에 최적화된 전용 메모리 할당기를 씁니다.",
+      "Compiler-Directed-Layout": "컴파일러가 분석해 배치를 결정합니다.",
+      "Programmer-Managed": "프로그래머가 직접 배치를 관리합니다."
+    }
+  },
+  "13_econ": {
+    "axis": "제조 주체, 공정 충돌, 비용, 시장 규모 같은 산업·경제적 조건을 나타냅니다. 원형(precursor) 논문에서는 필수 축입니다 — IRAM은 'DRAM 업체가 프로세서를 넣을 것인가'를, Smart Memories는 '마스크 비용이 오르는데 좁은 시장용 커스텀 칩이 수지를 맞추는가'를 다뤘습니다. 현대 논문은 이미 상용화된 제품(HBM-PIM 등)을 전제해 이 논증을 생략하는 경우가 많습니다.",
+    "tags": {
+      "FabricationOwner: DRAMVendor": "DRAM 제조사가 로직까지 넣어야 실현 가능한 설계입니다.",
+      "FabricationOwner: LogicVendor": "로직(파운드리) 업체가 메모리를 넣어야 실현 가능한 설계입니다.",
+      "FabricationOwner: Foundry": "파운드리 공정 안에서 통합이 이뤄집니다.",
+      "FabricationOwner: Integrated": "메모리와 로직을 모두 만드는 수직 통합 업체만 실현할 수 있습니다.",
+      "FabricationOwner: NoneRequired": "기존 제품을 조합하는 것만으로 실현 가능해, 새로운 제조 주체가 필요 없습니다.",
+      "ProcessConflict": "로직 공정과 메모리 공정이 서로 충돌해 비용·성능 손실이 생긴다는 점을 다룹니다.",
+      "NRE-Amortization": "마스크 제작·검증 같은 초기 비용(NRE)을 어떻게 분산해 회수할지를 다룹니다.",
+      "CommodityInterchangeability": "표준 부품과 그대로 교체 가능한지(호환성)를 다룹니다.",
+      "TestCost": "테스트 비용 증가를 논증에 포함합니다.",
+      "Yield": "제조 수율에 미치는 영향을 논증에 포함합니다.",
+      "VolumeRequirement": "수지를 맞추는 데 필요한 최소 생산 물량을 다룹니다.",
+      "StandardizationPath": "JEDEC 같은 표준화 절차를 통해 시장에 자리잡는 경로를 다룹니다.",
+      "NoEconomicArgument": "경제적 실현 가능성에 대한 논증이 없습니다. 원형 논문에서 이 태그가 나오면 그 자체가 '만들 수 있는가'는 안 묻고 '만들면 빠른가'만 물었다는 의미로, 주목할 만한 발견입니다."
+    }
+  },
+  "14_lineage": {
+    "axis": "선행 아이디어의 상속·명명·전달·폐기를 근거와 함께 나타냅니다. 다른 축과 달리 태그 하나짜리 통제어휘가 아니라 inherited/coined/transmitted/abandoned 네 칸으로 구성된 구조적 축이며, 원형(precursor) 논문에서는 필수입니다.",
+    "tags": {}
+  }
+}

@@ -1,0 +1,364 @@
+{
+  "schema_version": "0.1",
+  "id": "navcim-pact-24",
+  "title": "NavCim: Comprehensive Design Space Exploration for Analog Computing-in-Memory Architectures",
+  "bib": "J. Park, B. Kim, and H. Sung, \"NavCim: Comprehensive Design Space Exploration for Analog Computing-in-Memory Architectures,\" in Proc. Int. Conf. Parallel Architectures and Compilation Techniques (PACT), 2024.",
+  "year": 2024,
+  "mode": "standard",
+  "file": "pim/codelab/navcim-pact-24.pdf",
+  "digest": null,
+  "one_line": "선행 이종 ACiM 탐색(multi-obj-search)이 후보마다 시뮬레이터를 돌려 탐색 비용이 폭증하던 자리에, NavCim은 ACiM PPA를 예측 모델로 대체해 탐색을 최대 7.3배 빠르게 하고 진화 탐색으로 2개 초과 tile 크기·다중 모델·정확도까지 함께 최적화하는 포괄적 ACiM DSE.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "HostOnly",
+          "primary": true,
+          "note": "artifact: DSE 도구"
+        }
+      ],
+      "explored": "analog CiM(ACiM) memristor SA 타일 계층, DataArray에서 in-place MVM",
+      "evidence": "§1; §2"
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "Agnostic",
+          "primary": true,
+          "note": "artifact DSE"
+        },
+        {
+          "v": "PUM",
+          "note": "explored: ACiM 셀 물리로 MVM"
+        }
+      ],
+      "evidence": "§1"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "ReRAM",
+          "primary": true,
+          "note": "explored: memristor crossbar, ADC/DAC"
+        }
+      ],
+      "evidence": "§1"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "ConfigurableFixed",
+          "primary": true,
+          "note": "explored: tile/SA 크기·ADC/DAC 구성이 탐색 변수"
+        }
+      ],
+      "precision": [
+        "Analog-MultiLevel"
+      ],
+      "acim": {
+        "adc_dac": "ADC/DAC 구현이 정확도·PPA에 직접 영향 — 탐색·정확도 인지 대상",
+        "note": "정확도를 명시적 최적화 목표로 포함(선행과 차별점)"
+      },
+      "evidence": "§1 (ADC/DAC ... model accuracy)"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "Subarray",
+          "primary": true,
+          "note": "explored: SA"
+        },
+        {
+          "v": "Die",
+          "note": "tile mesh"
+        }
+      ],
+      "evidence": "§1; §2"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Operator",
+          "primary": true,
+          "note": "explored: layer-to-tile 매핑"
+        }
+      ],
+      "evidence": "§1 (layer-to-tile mapping)"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Tensor"
+        }
+      ],
+      "evidence": "§1"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "NoC-Mesh",
+          "primary": true,
+          "note": "explored: 타일 간 on-chip 2D mesh NoC"
+        }
+      ],
+      "note": "v1.1에서 NavCim이 승격시킨 태그",
+      "evidence": "§2"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "note": "독립형 ACiM 가속기 DSE — 호스트-PIM 코히런스 대상 아님(OutOfScope)",
+      "evidence": "—"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "evidence": "—"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Quantitative-Profiling",
+          "primary": true,
+          "note": "PPA + 정확도를 예측 모델로 추정(시뮬레이터 대체)"
+        }
+      ],
+      "metrics": [
+        "EnergyBreakdown"
+      ],
+      "evidence": "§1; §3"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Search-Based",
+          "primary": true,
+          "note": "진화 탐색(evolutionary) + 예측 모델 기반 대리(surrogate) 탐색"
+        }
+      ],
+      "evidence": "§1"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "DesignSpaceCost",
+          "primary": true,
+          "note": "예측 모델로 탐색 시간 최대 7.3배↓, 탐색공간·모델·정확도로 커버리지 확장"
+        },
+        {
+          "v": "ComputeThroughput",
+          "note": "다중 모델을 단일 칩에서 효율 실행"
+        }
+      ],
+      "evidence": "§1"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "DSE-Tool",
+          "note": "v1.3 승격 (ArchitectureSearchTool)"
+        }
+      ],
+      "ir_level": [],
+      "note": "multi-obj-search와 동일 — 코드 오프로드가 아닌 아키텍처 탐색 도구",
+      "evidence": "§1"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "evidence": "—"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "NoHWChange",
+          "primary": true,
+          "note": "artifact: 탐색 도구. explored는 ReRAM 후보 생성만"
+        }
+      ],
+      "evidence": "§1"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "AnalyticalOnly",
+          "primary": true,
+          "note": "PPA 예측 모델(시뮬레이터를 매 후보 실행하지 않음)"
+        }
+      ],
+      "note": "예측 모델 자체는 시뮬레이터(NeuroSim 계열)로 학습·보정",
+      "evidence": "§1 (predictive models instead of running simulators)"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "CNN",
+          "primary": true,
+          "note": "다중 NN 모델을 단일 칩에"
+        }
+      ],
+      "evidence": "§1"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "AnalyticalModel",
+          "primary": true,
+          "note": "PPA·정확도 예측 모델"
+        }
+      ],
+      "evidence": "§1; §3"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "NeuroSim",
+          "note": "예측 모델 학습·보정용"
+        },
+        {
+          "v": "In-House",
+          "note": "NavCim 탐색 프레임"
+        }
+      ],
+      "evidence": "§3"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "Unvalidated",
+          "primary": true,
+          "note": "예측 모델을 시뮬레이터와 대조하나 실측 검증은 아님"
+        }
+      ],
+      "evidence": "§3"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "PriorPIM",
+          "primary": true,
+          "note": "선행 multi-obj-search [26] 및 동종 ACiM 제안"
+        }
+      ],
+      "note": "탐색 7.3배↓, 정확도 최대 19%↑ over prior work. DSE 논문이라 baseline이 '다른 탐색 전략'(선행 DSE)이라는 점이 규범에 맞음",
+      "evidence": "§1"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "evidence": "—"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "Compiler-Directed-Layout",
+          "primary": true,
+          "note": "탐색이 layer→tile 매핑·스케줄 결정"
+        }
+      ],
+      "evidence": "§1"
+    },
+    "13_econ": {
+      "tags": [
+        {
+          "v": "NoEconomicArgument"
+        }
+      ],
+      "evidence": "—"
+    },
+    "14_lineage": {
+      "inherited": [
+        "multi-obj-search [26] (직접 선행, 동일 그룹)",
+        "NeuroSim",
+        "ACiM tiled 아키텍처 [6,30,32,35]"
+      ],
+      "coined": [
+        "예측 모델 기반 ACiM DSE",
+        "accuracy-aware 다목적 탐색",
+        "진화 탐색으로 >2 tile 크기"
+      ],
+      "transmitted": [],
+      "abandoned": [
+        {
+          "what": "후보마다 시뮬레이터 실행(선행 방식)",
+          "why": "SupersededByBetter",
+          "note": "예측 모델로 대체"
+        }
+      ],
+      "evidence": "§1"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "5b_coherency",
+      "silence": "OutOfScope",
+      "note": "독립형 ACiM DSE"
+    },
+    {
+      "axis": "9a_hw_change",
+      "silence": "OutOfScope",
+      "note": "탐색 도구는 후보 생성만"
+    },
+    {
+      "axis": "12a_translation",
+      "silence": "OutOfScope"
+    }
+  ],
+  "relations": [
+    {
+      "target": "multi-obj-archi-search-iccad-23",
+      "shared_axes": [
+        "2a_approach",
+        "2b_technology",
+        "5a_comm",
+        "6b_workload_class",
+        "8a_offload_mech"
+      ],
+      "divergent_axes": [
+        "9b_verify",
+        "11a_eval_method"
+      ],
+      "type": "subsumes",
+      "direction": "to_target",
+      "note": "동일 그룹의 직접 후속. multi-obj는 후보마다 시뮬레이터를 돌려 탐색 비용 폭증 → NavCim이 예측 모델·진화 탐색·정확도 인지로 그 한계를 흡수·개선(7.3배↓, 정확도 19%↑)"
+    },
+    {
+      "target": "pimflow-cgo-23",
+      "shared_axes": [
+        "6b_workload_class"
+      ],
+      "divergent_axes": [
+        "2a_approach",
+        "2b_technology"
+      ],
+      "type": "disjoint",
+      "direction": "undirected",
+      "note": "같은 POSTECH Sung 그룹 search 계열이나 PIM 가지가 다름 — PUM analog CiM(ReRAM) DSE vs PNM digital DRAM-PIM 컴파일"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#1",
+      "resolution": "pass",
+      "note": "explored DataArray → PUM(ACiM) 일치"
+    },
+    {
+      "check": "DSE",
+      "resolution": "pass",
+      "note": "baseline이 선행 DSE(multi-obj) = 다른 탐색 전략. DSE 규범 충족"
+    }
+  ]
+}

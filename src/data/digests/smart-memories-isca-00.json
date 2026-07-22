@@ -1,0 +1,187 @@
+{
+  "schema_version": "0.1",
+  "id": "smart-memories-isca-00",
+  "title": "Smart Memories: A Modular Reconfigurable Architecture",
+  "bib": "K. Mai, T. Paaske, N. Jayasena, R. Ho, W. J. Dally, and M. Horowitz, \"Smart Memories: A Modular Reconfigurable Architecture,\" in Proc. 27th Annu. Int. Symp. Computer Architecture (ISCA), 2000, pp. 161-171.",
+  "year": 2000,
+  "mode": "precursor",
+  "mode_reason": "before-pim/ 하위, 2000년 출판, 평가가 Imagine·Hydra 매핑 시뮬레이션뿐, '이렇게 가야 한다'는 논변(VLSI 스케일링 하의 경제 논증)을 편다",
+  "file": "pim/before-pim/smart-memories-isca-00.pdf",
+  "digest": null,
+  "one_line": "마스크 NRE·검증 비용은 오르는데 좁은 시장용 커스텀 칩은 수지가 안 맞는다는 경제 딜레마에, Smart Memories는 재구성 가능한 메모리 mat·크로스바·명령 디코드로 이뤄진 타일 하나로 Imagine(스트림)과 Hydra(투기적 MP)를 modest degradation에 담아내는 범용 기판을 제안한다 — 20년 뒤 [S1]이 PIM 계보로 재편입한 원형.",
+
+  "axes": {
+    "1_location": {
+      "tags": [ { "v": "SameDie-Peer", "primary": true, "note": "프로세서 타일 + on-die DRAM 타일이 위계 없이 대등하게 한 다이에, 패킷 네트워크로 연결" } ],
+      "evidence": "§2 Fig.1; §3"
+    },
+    "2a_approach": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "PUM/PNM 이분법([S1] §5.2)이 2000년엔 개념으로 없었음 → Anachronistic. [S1]이 후대에 PIM 계보로 재편입",
+      "evidence": "—"
+    },
+    "2b_technology": {
+      "tags": [
+        { "v": "eDRAM", "primary": true, "note": "on-die DRAM 타일(2-4MB/타일 대안)" },
+        { "v": "SRAM", "note": "타일당 16×8KB reconfigurable mat = 128KB" }
+      ],
+      "evidence": "§3 (memory mats); §2"
+    },
+    "3_programmability": {
+      "tags": [ { "v": "Reconfigurable", "primary": true, "reconfig": [ "@Memory", "@Interconnect", "@InstructionFormat" ], "note": "mat을 cache/scratchpad/stream reg로, 크로스바 토폴로지, opcode 디코드를 재구성. FPGA보다 coarse-grained" } ],
+      "precision": [ "FP64", "SubwordInteger" ],
+      "evidence": "§3 (flexible memory/interconnect/instruction decode); Fig.4"
+    },
+    "4a_parallelism": {
+      "tags": [
+        { "v": "Die", "primary": true, "note": "타일(≈64/다이)·quad(4타일)" },
+        { "v": "Module", "note": "고속 링크로 multi-chip" }
+      ],
+      "note": "ILP + TLP 동시 활용",
+      "evidence": "§1; §2"
+    },
+    "4b_offload": {
+      "tags": [ { "v": "NoOffload-Resident", "primary": true, "note": "호스트-PIM 경계 없음 — 프로그램이 기판 위에서 직접 실행" } ],
+      "evidence": "§2"
+    },
+    "4c_data_gran": {
+      "tags": [ { "v": "Word" }, { "v": "Vector", "note": "stream/vector register file 구성" } ],
+      "evidence": "§3"
+    },
+    "5a_comm": {
+      "tags": [ { "v": "PacketProtocol", "primary": true, "note": "packet-based dynamically-routed global network + 타일 내 crossbar, quad intra-network" } ],
+      "evidence": "§2; §3"
+    },
+    "5b_coherency": {
+      "tags": [ { "v": "ConfigurableCoherence", "primary": true, "note": "코히런스 프로토콜 자체가 재구성 대상 — Hydra 매핑이 투기적 코히런스를 기판 위에 구성" } ],
+      "note": "호스트-PIM 코히런스는 경계가 없어 Dissolved(일관성 검사 #12). 대신 on-chip 코히런스가 재구성 대상이 됨",
+      "evidence": "§3; §4 (Hydra mapping)"
+    },
+    "5c_consistency": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "메모리 일관성 모델을 명시적 프레임으로 다루지 않음(구성에 따라 달라짐) → Anachronistic 경향",
+      "evidence": "—"
+    },
+    "6a_workload_analysis": {
+      "tags": [ { "v": "Qualitative", "primary": true, "note": "앱 클래스마다 다른 통신·메모리 요구를 정성 논증, 정량 프로파일링은 아님" } ],
+      "metrics": [],
+      "evidence": "§1; §2"
+    },
+    "6b_workload_class": {
+      "tags": [ { "v": "Static-Programmer", "primary": true, "note": "하드웨어 구성을 실행 전에 설정(configuration-time)" } ],
+      "evidence": "§3"
+    },
+    "7a_solved": {
+      "tags": [
+        { "v": "DesignSpaceCost", "primary": true, "note": "한 기판으로 넓은 앱 클래스를 담아 커스텀 칩 NRE를 재사용으로 상각" },
+        { "v": "WireDelayScaling", "note": "리피터에 재구성 로직을 얹어 wire/gate 지연을 함께 스케일" }
+      ],
+      "evidence": "§1; §2"
+    },
+    "8a_offload_mech": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "Imagine/Hydra 매핑은 설계자가 수동으로 수행, 자동 SW 스택·컴파일 경로 서술 없음 → OutOfScope(HW 기판 논문)",
+      "evidence": "—"
+    },
+    "8b_os_runtime": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "OS/런타임 미논의 → OutOfScope",
+      "evidence": "—"
+    },
+    "9a_hw_change": {
+      "tags": [ { "v": "NewMemoryArch", "primary": true, "note": "재구성 메모리 mat 기반 완전 신규 아키텍처. eDRAM+로직 동일 다이" } ],
+      "evidence": "§2; §3"
+    },
+    "9b_verify": {
+      "tags": [ { "v": "SimulationOnly", "primary": true, "note": "Imagine·Hydra 매핑 시뮬레이션" }, { "v": "AnalyticalOnly", "note": "면적·타일 크기 봉투 계산(0.1µm, 타일 edge ≈2.5mm)" } ],
+      "evidence": "§3; §4"
+    },
+    "10_application": {
+      "tags": [ { "v": "General-Purpose", "primary": true, "note": "멀티미디어·스트리밍(Imagine) + 투기적 병렬(Hydra) 양극단" } ],
+      "evidence": "§1; §4"
+    },
+    "11a_eval_method": {
+      "tags": [ { "v": "CycleAccurateSim", "primary": true, "note": "매핑된 Imagine/Hydra의 상대 성능 시뮬레이션" } ],
+      "evidence": "§4"
+    },
+    "11b_tools": {
+      "tags": [ { "v": "Not specified" } ],
+      "evidence": "§4"
+    },
+    "11c_validation": {
+      "tags": [ { "v": "Unvalidated", "primary": true, "note": "precursor — 검증이 아니라 매핑 실현 가능성 논증" } ],
+      "evidence": "§4"
+    },
+    "11d_baseline": {
+      "tags": [ { "v": "EmulatedOriginal", "primary": true, "note": "Imagine 스트림 프로세서·Hydra 투기적 MP. speedup이 아니라 modest degradation(손실)이 결과" } ],
+      "note": "질문이 'speedup 정당한가'에서 '손실 원인 귀속이 검증 가능한가'로 바뀜",
+      "evidence": "§4 (only modest performance degradation)"
+    },
+    "12a_translation": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "호스트-PIM 경계가 없어 PIM 고유 번역 문제가 발생하지 않음 → Dissolved",
+      "evidence": "—"
+    },
+    "12b_mapping": {
+      "tags": [ { "v": "Programmer-Managed", "primary": true, "note": "재구성 mat 배치를 하드웨어 구성으로 지정" } ],
+      "evidence": "§3"
+    },
+    "13_econ": {
+      "tags": [
+        { "v": "NRE-Amortization", "primary": true, "note": "마스크 NRE·검증 비용 상승 → 재사용 기판으로 분산" },
+        { "v": "VolumeRequirement", "note": "복잡 칩은 대량 판매해야 수지. 좁은 커스텀과 충돌" },
+        { "v": "CommodityInterchangeability", "note": "한 기판이 여러 아키텍처를 대체" }
+      ],
+      "note": "논문의 심장이 경제 논증 — VLSI 스케일링 하의 NRE·검증·시장 규모. 정량: 0.1µm, 타일 edge 2.5mm, 400mm² 다이 ≈64 타일",
+      "evidence": "§1; §2"
+    },
+    "14_lineage": {
+      "inherited": [ "IRAM [6] (한계를 비판적으로 계승)", "Imagine 스트림 [1]", "MIT Raw [10]", "Hydra 투기적 MP", "VLIW/vector 범용 프로세서 [2-5]" ],
+      "coined": [ "Smart Memories", "coarse-grained reconfigurable memory mat 기판", "tile/quad 조직" ],
+      "transmitted": [
+        { "to": "[S1] Modern Primer (2020) — PIM 계보로 재편입", "form": "Reframed" },
+        { "to": "CGRA·tiled 아키텍처(Raw→Tilera 계열)", "form": "Transformed" },
+        { "to": "Newton 등 상용 PIM", "form": "Reframed", "note": "계보상 조상" }
+      ],
+      "abandoned": [
+        { "what": "단일 다이 프로세서+DRAM 완전 통합", "why": "EconomicallyInfeasible", "note": "3D 적층으로 대체" },
+        { "what": "모든 것을 재구성하는 범용 기판", "why": "SupersededByBetter", "note": "고정 도메인 가속기가 승리" }
+      ],
+      "evidence": "§1; §5; [S1]"
+    }
+  },
+
+  "not_addressed": [
+    { "axis": "2a_approach", "silence": "Anachronistic", "note": "PUM/PNM 이분법이 2000년에 개념으로 부재" },
+    { "axis": "5b_coherency", "silence": "Dissolved", "note": "호스트-PIM 경계 없음(SameDie-Peer). 대가: on-chip 코히런스를 사람이 구성해야 함(ConfigurableCoherence)" },
+    { "axis": "12a_translation", "silence": "Dissolved", "note": "호스트-PIM 번역 문제가 성립하지 않음. 대가: 통합 주소공간 관리를 기판이 떠안음" },
+    { "axis": "5c_consistency", "silence": "Anachronistic", "note": "메모리 일관성 모델 프레임 이전" },
+    { "axis": "8a_offload_mech", "silence": "OutOfScope", "note": "HW 기판 논문 — 자동 SW 스택은 범위 밖" }
+  ],
+
+  "relations": [
+    {
+      "target": "intelligent-ram-micro-journal-97",
+      "shared_axes": [ "13_econ", "1_location" ],
+      "divergent_axes": [ "3_programmability" ],
+      "type": "lineage",
+      "direction": "from_target",
+      "note": "IRAM(1997)을 [6]으로 인용하며 '범용 컴퓨팅 엔진 시도의 한계'로 비판적 계승. IRAM=SameDie-Processor(full core), Smart Memories=SameDie-Peer(reconfigurable tile). 둘 다 경제 논증이 심장"
+    },
+    {
+      "target": "newton-micro-20",
+      "shared_axes": [ "14_lineage" ],
+      "divergent_axes": [ "3_programmability", "13_econ" ],
+      "type": "lineage",
+      "direction": "to_target",
+      "note": "원형 조상 → 상용 후손. Smart Memories=Reconfigurable, Newton=FixedFunction. 재구성 만능 기판이 버려지고 고정 도메인 가속기가 승리한 계보의 종착점"
+    }
+  ],
+
+  "other_tags": [],
+
+  "consistency_flags": [
+    { "check": "#12", "resolution": "pass", "note": "Location=SameDie-Peer → 5b 호스트-PIM 코히런스 Dissolved 확인. 단 on-chip은 ConfigurableCoherence로 표기(v1.1 Smart Memories 승격 규칙)" },
+    { "check": "precursor", "resolution": "note", "note": "11d=EmulatedOriginal이라 §Evaluation 질문이 '손실 귀속 검증 가능성'으로 전환. 축 13·14 필수 충족" }
+  ]
+}

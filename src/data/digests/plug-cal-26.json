@@ -1,0 +1,347 @@
+{
+  "schema_version": "0.1",
+  "id": "plug-cal-26",
+  "title": "PLUG: Processing-in-memory LUT Gathering for Graph ANNS",
+  "bib": "S. Yoo, J. Yang, H. Kim, Y. Shin, D. Kang, C. Shin, J. Lee, and H. Sung, \"PLUG: Processing-in-memory LUT Gathering for Graph ANNS,\" IEEE Computer Architecture Letters, 2026.",
+  "year": 2026,
+  "mode": "standard",
+  "file": "pim/codelab/plug-cal-26.pdf",
+  "digest": null,
+  "one_line": "PQ 기반 ANNS의 병목이 연산이 아니라 비연속 LUT 접근임을 짚고, in-DRAM gather + 전 뱅크 병렬 실행으로 LUT를 모아 overfetch와 커맨드 오버헤드를 줄인 HBM PIM.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true,
+          "note": "전 뱅크 동시 gather 실행"
+        },
+        {
+          "v": "Periphery",
+          "note": "in-DRAM gather 지원 로직"
+        }
+      ],
+      "evidence": "Abstract; §III"
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "PNM",
+          "primary": true,
+          "note": "DRAM에 gather+accumulate 로직 추가"
+        }
+      ],
+      "evidence": "Abstract; §III"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "HBM",
+          "primary": true,
+          "note": "HBM2 baseline 위 HBM-PIM"
+        }
+      ],
+      "evidence": "Abstract"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "FixedFunction",
+          "primary": true,
+          "note": "LUT gather + distance accumulation 전용"
+        }
+      ],
+      "precision": [
+        "INT8"
+      ],
+      "evidence": "Abstract; §III"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true,
+          "note": "bank-level parallelism, all-bank execution"
+        },
+        {
+          "v": "Channel",
+          "note": "HBM 채널 병렬성 — all-bank 실행이 스택 전반 대역폭 활용"
+        }
+      ],
+      "evidence": "Abstract; §III"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Operator",
+          "primary": true,
+          "note": "PQ distance computation 오프로드"
+        }
+      ],
+      "evidence": "Abstract"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Vector",
+          "note": "PQ sub-vector LUT"
+        },
+        {
+          "v": "Word",
+          "note": "비연속 LUT 엔트리 gather"
+        }
+      ],
+      "evidence": "§II; Fig.1"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "CustomDRAMCommand",
+          "primary": true,
+          "note": "in-DRAM gather primitive 확장"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "Host-Driven-NoAutonomousWrite",
+          "primary": true,
+          "note": "호스트가 PIM 오프로드를 관리, LUT는 pinned"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "KernelBoundarySync",
+          "estimated": true,
+          "note": "명시 없음, 오프로드 경계 동기 추정"
+        }
+      ],
+      "evidence": "—"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Roofline",
+          "note": "low arithmetic intensity, memory-bound"
+        }
+      ],
+      "metrics": [
+        "ArithmeticIntensity",
+        "BandwidthUtilization"
+      ],
+      "evidence": "§I; §II"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Static-Programmer",
+          "note": "layer-aware gather policy — 그래프 층별 병렬성 반영"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "OffChipBandwidth",
+          "primary": true
+        },
+        {
+          "v": "CommandBandwidth",
+          "note": "command·activation overhead 감축"
+        },
+        {
+          "v": "IrregularAccess",
+          "note": "비연속 LUT 접근"
+        },
+        {
+          "v": "DataMovementEnergy",
+          "note": "DRAM 에너지 44% 감축"
+        },
+        {
+          "v": "Overfetch",
+          "note": "행 전체를 올려도 일부만 쓰는 overfetch 감축"
+        }
+      ],
+      "evidence": "Abstract; §I; §III"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "LibraryAPI",
+          "note": "HNSW-PQ distance 오프로드 관리"
+        }
+      ],
+      "ir_level": [],
+      "evidence": "§III"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "RuntimeScheduler",
+          "note": "layer-aware 오프로드 정책"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "PeripheryAddition",
+          "primary": true,
+          "note": "minimal hardware overhead — in-DRAM gather 지원"
+        }
+      ],
+      "area_overhead": "minimal (본문 정량 미제시)",
+      "evidence": "§III"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "SimulationOnly"
+        }
+      ],
+      "evidence": "§IV"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "ANNS",
+          "primary": true,
+          "note": "approximate nearest neighbor search / vector DB — HNSW-PQ"
+        },
+        {
+          "v": "Database-Query",
+          "note": "vector database retrieval"
+        }
+      ],
+      "note": "database-augmented inference 검색",
+      "evidence": "Abstract; §I"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "CycleAccurateSim"
+        }
+      ],
+      "evidence": "§IV"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "In-House"
+        }
+      ],
+      "evidence": "§IV"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "Unvalidated"
+        }
+      ],
+      "evidence": "§IV"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "CPU",
+          "primary": true,
+          "note": "CPU-only 대비 end-to-end 1.30×"
+        },
+        {
+          "v": "PriorPIM",
+          "note": "HBM2 대비 PQ distance 2.70×"
+        }
+      ],
+      "evidence": "Abstract; §IV"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "evidence": "—"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "Compiler-Directed-Layout",
+          "note": "PQ-friendly memory layout"
+        },
+        {
+          "v": "Custom-Allocator",
+          "note": "per-query LUT pinned in memory"
+        }
+      ],
+      "evidence": "Abstract; §III"
+    },
+    "13_econ": {
+      "tags": [],
+      "evidence": ""
+    },
+    "14_lineage": {
+      "inherited": [
+        "PIM 기반 graph traversal 가속 [5]",
+        "in-DRAM gather primitive"
+      ],
+      "coined": [
+        "PQ-friendly layout + all-bank LUT gather"
+      ],
+      "transmitted": [],
+      "abandoned": [],
+      "evidence": "§I"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "12a_translation",
+      "silence": "OutOfScope",
+      "partial_evaded": false,
+      "note": "LUT를 물리 상주(pinned)시켜 번역 문제 우회"
+    },
+    {
+      "axis": "5c_consistency",
+      "silence": "OutOfScope",
+      "partial_evaded": false,
+      "note": "명시 없음, 오프로드 경계 동기 추정"
+    },
+    {
+      "axis": "13_econ",
+      "silence": "OutOfScope",
+      "partial_evaded": false,
+      "note": "제조·경제 논증 없음 (현대 아키텍처 논문)"
+    }
+  ],
+  "relations": [
+    {
+      "target": "newton-micro-20",
+      "shared_axes": [
+        "1_location",
+        "2a_approach",
+        "2b_technology"
+      ],
+      "divergent_axes": [
+        "10_application",
+        "4b_offload"
+      ],
+      "type": "complements",
+      "direction": "undirected",
+      "note": "동일 near-bank HBM PNM 기판이지만 워크로드가 완전히 다름 — Newton=DNN GEMV, PLUG=ANNS LUT gather. 함께 PIM 적용 범위의 폭을 넓힘"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#13",
+      "resolution": "pass",
+      "note": "Bank + 디지털 gather/accumulate 로직 → PNM 정합"
+    }
+  ]
+}

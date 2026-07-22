@@ -1,0 +1,352 @@
+{
+  "schema_version": "0.1",
+  "id": "active-memory-cube-ibm-15",
+  "title": "Active Memory Cube: A processing-in-memory architecture for exascale systems",
+  "bib": "R. Nair et al., \"Active Memory Cube: A processing-in-memory architecture for exascale systems,\" IBM Journal of Research and Development, vol. 59, no. 2/3, 2015.",
+  "year": 2015,
+  "mode": "standard",
+  "file": "pim/active-memory-cube-ibm-15.pdf",
+  "digest": null,
+  "one_line": "HMC 로직 레이어에 벡터 ISA·predication·gather-scatter·가상주소를 갖춘 범용성 있는 lane들을 얹어, 호스트와 코히런트하게 공유되는 메모리 위에서 OpenMP로 오프로드하는 exascale용 PNM — 상용 PIM 이전의 정교한 in-memory 프로세서.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "LogicDie",
+          "primary": true,
+          "note": "HMC 로직 레이어에 처리 lane 배치"
+        }
+      ],
+      "evidence": "Abstract; §HMC/AMC 구조"
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "PNM",
+          "primary": true,
+          "note": "로직 레이어에 별도 처리 유닛 추가"
+        }
+      ],
+      "evidence": "Abstract"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "HMC",
+          "primary": true,
+          "note": "Hybrid Memory Cube 3D 스택, vault 구조"
+        }
+      ],
+      "evidence": "Abstract; §HMC"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "ProgrammableCore",
+          "primary": true,
+          "note": "lane = 범용 코어 성격 + 벡터 레지스터·벡터 ISA·predicated execution"
+        }
+      ],
+      "precision": [
+        "FP64",
+        "SubwordInteger"
+      ],
+      "evidence": "§lanes; 'floating-point and integer instructions, predicated operations'"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "Vault",
+          "primary": true,
+          "note": "HMC vault별 lane"
+        },
+        {
+          "v": "Die"
+        }
+      ],
+      "evidence": "§AMC 구조"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Application",
+          "primary": true,
+          "note": "OpenMP 4.0 directive로 병렬 영역 오프로드"
+        },
+        {
+          "v": "Kernel"
+        }
+      ],
+      "evidence": "§compiler; OpenMP 4.0"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Vector",
+          "note": "벡터 레지스터·벡터 ISA"
+        },
+        {
+          "v": "Word"
+        }
+      ],
+      "evidence": "§lanes"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "SharedMemory",
+          "primary": true,
+          "note": "AMC 메모리가 lane·host 모두에서 접근"
+        },
+        {
+          "v": "MemoryMappedIO"
+        }
+      ],
+      "evidence": "§coherent access"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "HW-Coherent-FineGrained",
+          "primary": true,
+          "note": "메모리가 lane과 host에서 일관·코히런트하게 접근 — 드문 coherent PIM"
+        }
+      ],
+      "evidence": "'consistently and coherently accessible both from the lanes and from the host'"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "RelaxedWithFences",
+          "estimated": true,
+          "note": "명시 제한적, 코히런트 공유 기반 추정"
+        }
+      ],
+      "evidence": "—"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Assumed",
+          "note": "exascale 과학 워크로드 전제 — 짧은 tenancy·스트리밍"
+        }
+      ],
+      "metrics": [],
+      "evidence": "§scientific exascale; streaming"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Static-Compiler",
+          "primary": true,
+          "note": "OpenMP directive 기반, 명령 스케줄은 컴파일러"
+        }
+      ],
+      "evidence": "§compiler"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "DataMovementEnergy",
+          "primary": true,
+          "note": "메모리에서 연산해 에너지 절감 — exascale 20MW 목표"
+        },
+        {
+          "v": "OffChipBandwidth"
+        },
+        {
+          "v": "ComputeThroughput",
+          "note": "exascale 10^18 FLOPS 목표"
+        },
+        {
+          "v": "MemoryLatency"
+        }
+      ],
+      "evidence": "Abstract; §motivation"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "CompilerPass",
+          "primary": true,
+          "note": "AMC 컴파일러가 OpenMP 4.0 annotated program 처리"
+        }
+      ],
+      "ir_level": [
+        "SourceLevel"
+      ],
+      "evidence": "§compiler"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "OS-Modification",
+          "note": "가상주소→실주소 translation table 지원 필요"
+        },
+        {
+          "v": "RuntimeScheduler"
+        }
+      ],
+      "evidence": "§virtual addressing"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "LogicDieAddition",
+          "primary": true,
+          "note": "HMC 로직 레이어에 lane·벡터 유닛 추가"
+        }
+      ],
+      "area_overhead": "로직 레이어 personalization (정량 제한)",
+      "evidence": "§AMC 구조"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "SimulationOnly",
+          "primary": true
+        },
+        {
+          "v": "AnalyticalOnly"
+        }
+      ],
+      "evidence": "§evaluation"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "HPC-Stencil",
+          "primary": true,
+          "note": "material science·chemistry·fluid·physics"
+        },
+        {
+          "v": "SparseLinearAlgebra"
+        },
+        {
+          "v": "General-Purpose",
+          "note": "과학 계산 전반"
+        }
+      ],
+      "evidence": "§scientific domains"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "CycleAccurateSim"
+        },
+        {
+          "v": "AnalyticalModel"
+        }
+      ],
+      "evidence": "§evaluation"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "In-House",
+          "note": "AMC 시뮬레이터"
+        }
+      ],
+      "evidence": "§evaluation"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "Unvalidated"
+        }
+      ],
+      "evidence": "§evaluation"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "CPU",
+          "note": "petascale/기존 프로세서 대비 exascale 목표"
+        },
+        {
+          "v": "IdealMemory"
+        }
+      ],
+      "evidence": "§motivation"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "PIM-side-PageWalker",
+          "primary": true,
+          "note": "translation table로 user 가상주소→AMC 실주소 매핑"
+        }
+      ],
+      "evidence": "'translation tables to map virtual addresses in user programs to real addresses'"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "PIM-Aware-Interleaving"
+        },
+        {
+          "v": "Programmer-Managed",
+          "note": "OpenMP 파티셔닝"
+        }
+      ],
+      "evidence": "§partitioning"
+    },
+    "13_econ": {
+      "tags": [],
+      "evidence": ""
+    },
+    "14_lineage": {
+      "inherited": [
+        "Hybrid Memory Cube [8]",
+        "벡터 프로세싱 계보",
+        "MPI/OpenMP 병렬 모델"
+      ],
+      "coined": [
+        "HMC 로직 레이어의 coherent 범용 lane + exascale PNM"
+      ],
+      "transmitted": [
+        "→ 후속 HBM/HMC 로직다이 PNM 계보"
+      ],
+      "abandoned": [],
+      "evidence": "§related; §HMC"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "13_econ",
+      "silence": "OutOfScope",
+      "partial_evaded": false,
+      "note": "exascale 에너지 목표는 논하나 제조·수율 논증은 범위 밖"
+    }
+  ],
+  "relations": [
+    {
+      "target": "newton-micro-20",
+      "shared_axes": [
+        "2a_approach"
+      ],
+      "divergent_axes": [
+        "1_location",
+        "3_programmability",
+        "5b_coherency",
+        "10_application"
+      ],
+      "type": "disjoint",
+      "direction": "undirected",
+      "note": "둘 다 PNM이지만 층위·목표가 갈림 — AMC=HMC 로직다이 coherent 범용 lane·FP64 HPC, Newton=near-bank FixedFunction·ML 추론. coherent vs host-driven, exascale vs edge"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#2",
+      "resolution": "pass",
+      "note": "LogicDie → PNM 정합"
+    },
+    {
+      "check": "#5",
+      "resolution": "pass",
+      "note": "HMC → 4a에 Vault 등장, 스택 병렬성 활용 정합"
+    }
+  ]
+}

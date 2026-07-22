@@ -1,0 +1,373 @@
+{
+  "schema_version": "0.1",
+  "id": "aurora-ics-26",
+  "title": "Aurora: A Disaggregated GPU-PNM-PIM System for High-Throughput Mixed-Length LLM Inference",
+  "bib": "H. Kim, S. Yu, M. Kim, J. Lee, H. Sung, and E. Lee, \"Aurora: A Disaggregated GPU-PNM-PIM System for High-Throughput Mixed-Length LLM Inference,\" in Proc. ICS, 2026.",
+  "year": 2026,
+  "mode": "standard",
+  "file": "pim/codelab/aurora-ics-26.pdf",
+  "digest": null,
+  "one_line": "ILGA(interleaved local/global attention)와 mixed-length 요청이 기존 PNM-PIM의 '균일 파이프라인' 가정을 깨뜨리는 지점을 짚고, block 이질성·요청 길이 다양성을 반영한 multi-path 파이프라인 + KV cache 전송을 파이프라인 연산으로 다루는 GPU-PNM-PIM 분리(disaggregated) 시스템.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true,
+          "note": "PNM-PIM decode 가속 유닛"
+        },
+        {
+          "v": "LogicDie"
+        },
+        {
+          "v": "NearMemDevice",
+          "note": "disaggregated PNM-PIM 노드"
+        }
+      ],
+      "explored": "artifact: GPU + PNM-PIM 분리 시스템",
+      "evidence": "Abstract; §system"
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "PNM",
+          "primary": true,
+          "note": "PNM-PIM decode 가속"
+        },
+        {
+          "v": "Hybrid",
+          "note": "GPU(prefill) + PNM-PIM(decode) 이종"
+        }
+      ],
+      "evidence": "Abstract"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "HBM",
+          "primary": true
+        }
+      ],
+      "evidence": "§system"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "FixedFunction",
+          "primary": true,
+          "note": "attention decode 전용 PNM-PIM 유닛 상속"
+        },
+        {
+          "v": "SIMDLanes"
+        }
+      ],
+      "precision": [
+        "FP16"
+      ],
+      "evidence": "§background PNM-PIM"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "Bank"
+        },
+        {
+          "v": "Channel"
+        },
+        {
+          "v": "MultiDevice",
+          "primary": true,
+          "note": "GPU+PNM-PIM 분리"
+        }
+      ],
+      "evidence": "§system"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Operator",
+          "primary": true,
+          "note": "attention(decode) 오프로드"
+        },
+        {
+          "v": "Kernel"
+        }
+      ],
+      "evidence": "Abstract"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Vector",
+          "note": "KV cache"
+        },
+        {
+          "v": "Tensor"
+        }
+      ],
+      "evidence": "§background"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "DMA",
+          "primary": true,
+          "note": "KV cache 전송을 파이프라인 연산으로 취급"
+        },
+        {
+          "v": "PacketProtocol",
+          "note": "disaggregated interconnect"
+        }
+      ],
+      "evidence": "Abstract; §pipeline"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "Host-Driven-NoAutonomousWrite",
+          "primary": true,
+          "note": "스케줄러가 요청 발행·조율"
+        }
+      ],
+      "evidence": "§scheduling"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "KernelBoundarySync",
+          "note": "파이프라인 단계 동기"
+        }
+      ],
+      "evidence": "§pipeline"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Quantitative-Profiling",
+          "primary": true,
+          "note": "block-level 이질성·요청 길이 다양성 특성화"
+        }
+      ],
+      "metrics": [
+        "ArithmeticIntensity"
+      ],
+      "evidence": "Abstract; §motivation"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Runtime-Dynamic",
+          "primary": true,
+          "note": "ILGA-aware multi-path 스케줄, 요청 발행 조율"
+        }
+      ],
+      "evidence": "Abstract; §scheduling"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "ComputeThroughput",
+          "primary": true,
+          "note": "GPU 대비 8.5×, prior PNM-PIM 대비 2.2×"
+        },
+        {
+          "v": "HostPIMTransfer",
+          "note": "KV cache 전송을 파이프라인화"
+        },
+        {
+          "v": "PipelineUtilization",
+          "note": "block 이질성·mixed-length 하에서 파이프라인 불균형·저활용 해소"
+        }
+      ],
+      "evidence": "Abstract; §motivation"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "DriverRuntime",
+          "primary": true,
+          "note": "ILGA-aware multi-path 파이프라인 스케줄링"
+        }
+      ],
+      "ir_level": [],
+      "evidence": "§scheduling"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "RuntimeScheduler",
+          "primary": true,
+          "note": "요청 발행·스케줄 조율"
+        }
+      ],
+      "evidence": "§scheduling"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "NoHWChange",
+          "primary": true,
+          "note": "기존 PNM-PIM 활용 + 시스템/스케줄 레이어"
+        }
+      ],
+      "evidence": "§system"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "SimulationOnly",
+          "primary": true
+        }
+      ],
+      "evidence": "§eval"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "LLM-Inference",
+          "segment": "Decode",
+          "primary": true,
+          "note": "decode 가속(PNM-PIM), prefill은 GPU"
+        },
+        {
+          "v": "LLM-Inference",
+          "segment": "Prefill",
+          "note": "long-context prefill은 GPU"
+        },
+        {
+          "v": "Transformer-Attention",
+          "segment": "Attention-Context",
+          "note": "ILGA: interleaved local/global attention"
+        },
+        {
+          "v": "ILGA",
+          "note": "interleaved local/global attention — local vs global 혼합 attention 패턴"
+        }
+      ],
+      "note": "long-context, mixed-length 서빙",
+      "evidence": "Abstract; §background"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "CycleAccurateSim"
+        }
+      ],
+      "evidence": "§eval"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "In-House"
+        }
+      ],
+      "evidence": "§eval"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "Unvalidated"
+        }
+      ],
+      "evidence": "§eval"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "GPU",
+          "primary": true,
+          "note": "GPU-only 대비 8.5×"
+        },
+        {
+          "v": "PriorPIM",
+          "note": "prior PNM-PIM 대비 2.2×"
+        }
+      ],
+      "evidence": "Abstract"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "evidence": "—"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "ChannelPartitioned",
+          "note": "disaggregated 배치"
+        },
+        {
+          "v": "Compiler-Directed-Layout",
+          "note": "파이프라인 매핑"
+        }
+      ],
+      "evidence": "§pipeline"
+    },
+    "13_econ": {
+      "tags": [],
+      "evidence": ""
+    },
+    "14_lineage": {
+      "inherited": [
+        "PNM-PIM decode 가속(AttAcc 등)",
+        "HBM-PIM 계보",
+        "disaggregated serving"
+      ],
+      "coined": [
+        "ILGA-aware multi-path PNM-PIM 파이프라인 + KV 전송 파이프라인화"
+      ],
+      "transmitted": [],
+      "abandoned": [
+        "균일 파이프라인 가정(prior PNM-PIM)"
+      ],
+      "evidence": "Abstract; §motivation"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "12a_translation",
+      "silence": "OutOfScope",
+      "partial_evaded": false,
+      "note": "시스템/스케줄 논문 — 주소 번역은 기저 PNM-PIM 몫"
+    },
+    {
+      "axis": "13_econ",
+      "silence": "OutOfScope",
+      "partial_evaded": false,
+      "note": "제조·경제 논증 없음"
+    }
+  ],
+  "relations": [
+    {
+      "target": "attacc-apslos-24",
+      "shared_axes": [
+        "2a_approach",
+        "2b_technology",
+        "10_application"
+      ],
+      "divergent_axes": [
+        "6b_workload_class",
+        "1_location"
+      ],
+      "type": "complements",
+      "direction": "undirected",
+      "note": "둘 다 LLM attention을 PNM으로 가속하나, AttAcc=bank 단위 attention 가속기(정적 배치), Aurora=ILGA·mixed-length에 대응하는 disaggregated 시스템·동적 스케줄. AttAcc이 전제한 '균일 블록' 가정을 Aurora가 깨고 이질성에 대응"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#13",
+      "resolution": "pass",
+      "note": "Bank/LogicDie + 디지털 로직 → PNM 정합"
+    },
+    {
+      "check": "#10",
+      "resolution": "note",
+      "note": "시스템 논문이라 baseline이 prior PNM-PIM(다른 아키텍처)와 GPU — DSE는 아님"
+    }
+  ]
+}

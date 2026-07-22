@@ -1,0 +1,401 @@
+{
+  "schema_version": "0.1",
+  "id": "attacc-apslos-24",
+  "title": "AttAcc! Unleashing the Power of PIM for Batched Transformer-based Generative Model Inference",
+  "bib": "J. Park, J. Choi, K. Kyung, M. J. Kim, Y. Kwon, N. S. Kim, and J. H. Ahn, \"AttAcc! Unleashing the Power of PIM for Batched Transformer-based Generative Model Inference,\" in Proc. 29th ACM Int. Conf. Architectural Support for Programming Languages and Operating Systems (ASPLOS), vol. 2, 2024, pp. 103-119.",
+  "year": 2024,
+  "mode": "standard",
+  "file": "pim/attacc-apslos-24.pdf",
+  "digest": null,
+  "one_line": "배치를 키워도 attention 층은 요청별 KV 행렬 때문에 memory-bound로 남아 GPU 이용률이 20% 아래로 무너지는 자리에, AttAcc은 HBM3 뱅크에 GEMV 유닛·버퍼 다이에 softmax 유닛을 얹어 attention만 PIM으로 밀고 FC는 xPU에 맡기는 이종 시스템으로 175B TbGM 추론을 최대 2.81배 가속한다.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true,
+          "note": "GEMV 유닛을 뱅크당 배치(AttAcc_bank) — DSE로 buffer/BG/bank 중 선택"
+        },
+        {
+          "v": "LogicDie",
+          "note": "softmax 유닛을 buffer die에 배치"
+        }
+      ],
+      "explored": "buffer die(AttAcc_buffer) / bank group(AttAcc_BG) / bank(AttAcc_bank) 3안 DSE 후 bank 선택",
+      "evidence": "§4.1 Fig.6·7; §5.1 GEMV Unit/Softmax Unit Placement"
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "PNM",
+          "primary": true,
+          "note": "DRAM 공정으로 GEMV/softmax 로직 추가"
+        }
+      ],
+      "evidence": "§3.3; §4.1"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "HBM",
+          "primary": true,
+          "note": "8-Hi HBM3, 5.2Gbps/pin"
+        }
+      ],
+      "evidence": "§4.1; §7.1"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "FixedFunction",
+          "primary": true,
+          "note": "GEMV 유닛(16 FP16 mul/add) + softmax 유닛 전용"
+        }
+      ],
+      "precision": [
+        "FP16",
+        "INT8"
+      ],
+      "evidence": "§5.1; §7.5 (INT8 sensitivity)"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true
+        },
+        {
+          "v": "PseudoChannel"
+        },
+        {
+          "v": "Rank"
+        },
+        {
+          "v": "Stack",
+          "note": "head-wise로 head당 1 HBM"
+        }
+      ],
+      "evidence": "§4.1; §4.2"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Operator",
+          "primary": true,
+          "note": "attention 층(score·context GEMV)을 통째로 PIM에 오프로드, FC는 xPU"
+        }
+      ],
+      "evidence": "§4; §5.2"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Vector"
+        },
+        {
+          "v": "Tensor",
+          "note": "KV 행렬"
+        }
+      ],
+      "evidence": "§3.3; §4.2"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "CustomDRAMCommand",
+          "primary": true,
+          "note": "PIM_ACT_AB/PIM_MAC_AB/PIM_SFM 등 RFU 커맨드를 표준 HBM 커맨드 경로로"
+        },
+        {
+          "v": "MemoryMappedIO",
+          "note": "AttAcc 메모리를 호스트에 memory-mapped 노출"
+        },
+        {
+          "v": "CXL.mem",
+          "note": "xPU-AttAcc 인터커넥트로 PCIe/NVLink/CXL 언급"
+        }
+      ],
+      "evidence": "§5.1 PIM commands; §4 Fig.5"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "Host-Driven-NoAutonomousWrite",
+          "primary": true,
+          "note": "호스트가 모든 PIM 커맨드를 발동, AttAcc은 attention만 실행. KV는 Sum stage에 한 번 기록"
+        }
+      ],
+      "evidence": "§5.2 execution flow; §3.3"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "KernelBoundarySync",
+          "estimated": true,
+          "note": "attention 층 경계에서 xPU-PIM 동기화(head-level pipelining)"
+        }
+      ],
+      "evidence": "§5.2; §6"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Roofline",
+          "primary": true,
+          "note": "attention Op/B ~1, GPU 이용률 batch 256에서도 20% 미만"
+        }
+      ],
+      "metrics": [
+        "ArithmeticIntensity",
+        "BandwidthUtilization"
+      ],
+      "evidence": "§3 Fig.3·4"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Static-Programmer",
+          "primary": true,
+          "note": "attention→PIM, FC→xPU 정적 분할"
+        }
+      ],
+      "evidence": "§4; §5.2"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "OffChipBandwidth",
+          "note": "attention GEMV에 DRAM 내부 대역폭(242TB/s, 외부의 9배) 노출"
+        },
+        {
+          "v": "CapacityLimit",
+          "note": "KV 행렬이 DRAM에 상주해 xPU 메모리 용량 압박 완화"
+        },
+        {
+          "v": "DataMovementEnergy"
+        }
+      ],
+      "evidence": "§7.1; §7.2"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "LibraryAPI",
+          "primary": true,
+          "note": "AttAcc::UpdateRequest 등 호스트 API로 컨트롤러 지시"
+        }
+      ],
+      "ir_level": [],
+      "note": "컴파일러 pass 없음. 호스트 드라이버/API 수준",
+      "evidence": "§5.2"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "RuntimeScheduler",
+          "primary": true,
+          "note": "iteration-level scheduling + head 그리디 할당"
+        }
+      ],
+      "evidence": "§4.2; §5.2"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "PeripheryAddition",
+          "primary": true,
+          "note": "DRAM die당 13.12mm², buffer die당 1.40mm²"
+        }
+      ],
+      "area_overhead": "10.84% per DRAM die (full-FP 누산 시 14.59%)",
+      "evidence": "§7.7"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "SimulationOnly",
+          "primary": true
+        },
+        {
+          "v": "SynthesisOnly",
+          "note": "remap: SynthesisEstimate는 11a 값. Synopsys DC 면적 합성→SynthesisOnly"
+        }
+      ],
+      "evidence": "§7.1; §7.7"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "Transformer-Attention",
+          "segment": "Attention-Score",
+          "primary": true
+        },
+        {
+          "v": "Transformer-Attention",
+          "segment": "Attention-Context"
+        },
+        {
+          "v": "LLM-Inference",
+          "segment": "Decode",
+          "note": "Gen stage. Sum(prefill)은 xPU"
+        }
+      ],
+      "note": "GPT-3 175B, LLAMA 65B, MT-NLG 530B",
+      "evidence": "§2.2; §7.1"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "CycleAccurateSim",
+          "primary": true,
+          "note": "Ramulator 2.0 개조 in-house 시뮬레이터"
+        }
+      ],
+      "evidence": "§7.1"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "Ramulator2"
+        },
+        {
+          "v": "CACTI",
+          "note": "FinCACTI"
+        },
+        {
+          "v": "Synopsys-DC"
+        },
+        {
+          "v": "In-House"
+        }
+      ],
+      "evidence": "§7.1; §7.7"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "Vendor-Datasheet",
+          "primary": true,
+          "note": "JEDEC HBM3 파라미터"
+        }
+      ],
+      "note": "GPU baseline은 실제 DGX A100(OPT-66B)과 대조 검증. 그러나 PIM 유닛 자체는 실측 없음(합성 추정)",
+      "evidence": "§7.1 (validated against actual DGX A100)"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "GPU",
+          "primary": true,
+          "note": "DGX A100 (DGX_Base 640GB, DGX_Large 1280GB)"
+        }
+      ],
+      "note": "end-to-end 최대 3.49×(2.81×) over DGX_Base(DGX_Large) — LLAMA/GPT-3/MT-NLG",
+      "evidence": "§7.2"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "PhysicallyContiguous-Reserved",
+          "note": "KV 행렬이 특정 HBM에 상주하도록 배치, 명시적 주소 번역 논의는 적음"
+        }
+      ],
+      "silence_hint": "가상→물리 번역 메커니즘은 깊이 다루지 않음",
+      "evidence": "§4.2"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "PIM-Aware-Interleaving",
+          "primary": true,
+          "note": "head-wise(HBM) + row/column-wise(pCH/BG/bank/multiplier) 계층 파티셔닝"
+        },
+        {
+          "v": "BankAligned"
+        },
+        {
+          "v": "Custom-Allocator",
+          "note": "Sum stage의 그리디 head 할당"
+        }
+      ],
+      "evidence": "§4.2 Fig.8"
+    },
+    "13_econ": {
+      "tags": [
+        {
+          "v": "NoEconomicArgument"
+        }
+      ],
+      "note": "제조 주체·표준화 논증 없음(HBM-PIM이 이미 존재한다는 전제). 현대 논문 정상.",
+      "evidence": "—"
+    },
+    "14_lineage": {
+      "inherited": [
+        "Newton 등 near-bank GEMV PIM",
+        "HBM-PIM 계보",
+        "extended [9](저자 선행)"
+      ],
+      "coined": [
+        "attention 층 전용 PIM + 이종 xPU-PIM 분업"
+      ],
+      "transmitted": [],
+      "abandoned": [],
+      "evidence": "§9 Related Work"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "12a_translation",
+      "silence": "OutOfScope",
+      "note": "KV가 물리 상주해 번역 문제를 대부분 우회. 다만 다중 프로세스/가상화 환경의 주소 번역은 미논의"
+    },
+    {
+      "axis": "5c_consistency",
+      "silence": "OutOfScope",
+      "note": "명시적 일관성 모델 서술 없음, kernel-boundary 동기로 추정"
+    }
+  ],
+  "relations": [
+    {
+      "target": "newton-micro-20",
+      "shared_axes": [
+        "2a_approach",
+        "2b_technology",
+        "10_application"
+      ],
+      "divergent_axes": [
+        "10_application:segment"
+      ],
+      "type": "complements",
+      "direction": "undirected",
+      "note": "Newton=FFN/FC GEMV, AttAcc=attention(score/context) GEMV. 둘을 합치면 transformer 전 구간. Newton이 '큰 피연산자 하나' 제약으로 배제한 attention을 AttAcc이 KV 재사용 구조로 정면 공략"
+    },
+    {
+      "target": "pathfinding-pim-hpca-24",
+      "shared_axes": [
+        "2a_approach",
+        "10_application"
+      ],
+      "divergent_axes": [
+        "1_location",
+        "6b_workload_class"
+      ],
+      "type": "disjoint",
+      "direction": "undirected",
+      "note": "둘 다 HBM-PIM으로 LLM을 노리나, AttAcc은 점 설계(attention 가속기), PathFinding은 오프로딩 대상 탐색 방법론 — 층위 다름"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#5",
+      "resolution": "pass",
+      "note": "HBM인데 4a에 PseudoChannel·Rank·Stack 병렬성이 나타나 자연스러움"
+    },
+    {
+      "check": "DSE",
+      "resolution": "note",
+      "note": "PU 배치·데이터 매핑에 DSE를 쓰지만 산출은 점 설계(AttAcc_bank). explored/artifact 분리를 1_location에 기록"
+    }
+  ]
+}

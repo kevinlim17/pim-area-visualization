@@ -1,0 +1,360 @@
+{
+  "schema_version": "0.1",
+  "id": "atim-isca-25",
+  "title": "ATiM: Autotuning Tensor Programs for Processing-in-DRAM",
+  "bib": "Y. Shin, D. Kang, and H. Sung, \"ATiM: Autotuning Tensor Programs for Processing-in-DRAM,\" in Proc. 52nd Annu. Int. Symp. Computer Architecture (ISCA), 2025.",
+  "year": 2025,
+  "mode": "standard",
+  "file": "pim/codelab/atim-isca-25.pdf",
+  "digest": null,
+  "one_line": "UPMEM SW 스택이 손튜닝 라이브러리(GEMV 등)에 묶여 프로그래밍성이 막힌 자리에, ATiM은 Apache TVM을 확장해 호스트·커널 텐서 프로그램을 함께 autotuning하고 TIR→LLVM IR로 낮춰, 실 UPMEM에서 손튜닝 대비 커널 최대 6.18배·GPT-J 층 8.21배를 내는 최초의 완전 자동 DRAM-PIM 텐서 컴파일러.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "HostOnly",
+          "primary": true,
+          "note": "artifact: autotuning 텐서 컴파일러. HW 미변경"
+        }
+      ],
+      "explored": "UPMEM DPU(bank당 in-order 32-bit RISC, 64MB MRAM/64KB WRAM)",
+      "evidence": "§1; §2 (UPMEM 구조)"
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "Agnostic",
+          "primary": true,
+          "note": "artifact 컴파일러"
+        },
+        {
+          "v": "PNM",
+          "note": "explored: UPMEM DPU"
+        }
+      ],
+      "evidence": "§1"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "UPMEM",
+          "primary": true,
+          "note": "explored: DDR4 DPU-per-bank"
+        }
+      ],
+      "evidence": "§1; §2"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "ProgrammableCore",
+          "primary": true,
+          "note": "explored: UPMEM DPU RISC 코어. ATiM은 이 위에 텐서 추상화 제공"
+        }
+      ],
+      "precision": [],
+      "evidence": "§2"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true,
+          "note": "16 bank(blockIdx.x)당 DPU, bank-level 병렬"
+        },
+        {
+          "v": "Rank"
+        },
+        {
+          "v": "Module"
+        }
+      ],
+      "evidence": "§3 (thread_binding 16 bank)"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Operator",
+          "primary": true,
+          "note": "텐서 연산자(GEMV·GPT-J 층) 단위, host+kernel 프로그램 공동 최적화"
+        }
+      ],
+      "evidence": "§1; §3"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Tensor",
+          "primary": true
+        }
+      ],
+      "evidence": "§3"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "DMA",
+          "primary": true,
+          "note": "UPMEM DMA 엔진, 호스트가 텐서를 뱅크에 분배"
+        }
+      ],
+      "evidence": "§2"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "NoCoherence",
+          "primary": true,
+          "note": "explored: UPMEM — DPU 간 공유·코히런스 없음, 호스트가 분배 관리"
+        }
+      ],
+      "evidence": "§2"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "KernelBoundarySync",
+          "primary": true,
+          "note": "호스트-커널 경계 동기"
+        }
+      ],
+      "evidence": "§3"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Quantitative-Profiling",
+          "primary": true,
+          "note": "autotuning이 실 UPMEM 하드웨어 측정(profiled runs)으로 후보 평가"
+        }
+      ],
+      "metrics": [],
+      "evidence": "§1; §3 (measures on hardware)"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Search-Based",
+          "primary": true,
+          "note": "host·kernel 결합 탐색공간을 autotuning으로 탐색"
+        }
+      ],
+      "evidence": "§1 기여(1); §4"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "ProgrammingBurden",
+          "primary": true,
+          "note": "손튜닝 라이브러리 대신 완전 자동 코드 생성"
+        },
+        {
+          "v": "ComputeThroughput",
+          "note": "autotuning이 expert 라이브러리 초과 성능"
+        }
+      ],
+      "evidence": "§1; §5"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "CompilerPass",
+          "primary": true,
+          "note": "Apache TVM 확장. TIR/TensorIR schedule primitive → UPMEM 실행코드. boundary-check elimination pass"
+        }
+      ],
+      "ir_level": [
+        "TVM-TE-TIR",
+        "LLVM-IR"
+      ],
+      "note": "Kevin 관심 이중 적중 — TVM 텐서 컴파일 + loop-based TIR→LLVM IR 낮춤",
+      "evidence": "§3 (TIR lowering to LLVM IR)"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "DeviceDriver",
+          "primary": true,
+          "note": "remap: DriverRuntime는 8a 값. UPMEM 실제 디바이스 드라이버"
+        }
+      ],
+      "evidence": "§2"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "NoHWChange",
+          "primary": true
+        }
+      ],
+      "evidence": "§1"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "RealCommercialPIM",
+          "primary": true,
+          "note": "remap: RealHardware는 11a 값. 실 UPMEM 측정→RealCommercialPIM"
+        }
+      ],
+      "evidence": "§5"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "LLM-Inference",
+          "segment": "FFN",
+          "primary": true,
+          "note": "GPT-J 층"
+        },
+        {
+          "v": "General-Purpose",
+          "note": "PrIM 벤치(GEMV 등)"
+        }
+      ],
+      "evidence": "§5"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "RealHardware",
+          "primary": true,
+          "note": "실 UPMEM 측정 기반 autotuning·평가"
+        }
+      ],
+      "evidence": "§5"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "In-House",
+          "note": "ATiM (Apache TVM 확장)"
+        }
+      ],
+      "evidence": "§3; §5"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "Silicon-Validated",
+          "primary": true,
+          "note": "실 UPMEM 하드웨어 측정 — 시뮬레이션 아님"
+        }
+      ],
+      "evidence": "§5"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "PriorPIM",
+          "primary": true,
+          "note": "손튜닝 UPMEM 라이브러리(PrIM [23], [5])"
+        }
+      ],
+      "note": "커널 최대 6.18×, GPT-J 층 8.21× vs 손튜닝",
+      "evidence": "§1; §5"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "IdentityMapped",
+          "primary": true,
+          "note": "explored: UPMEM MMU 없음, 호스트가 명시 매핑"
+        },
+        {
+          "v": "SegmentBased",
+          "note": "MRAM/WRAM/IRAM 분리"
+        }
+      ],
+      "evidence": "§2"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "Compiler-Directed-Layout",
+          "primary": true,
+          "note": "autotuning이 텐서→뱅크 캐싱 위치(compute_at·cache_read/write)를 결정"
+        }
+      ],
+      "evidence": "§3"
+    },
+    "13_econ": {
+      "tags": [
+        {
+          "v": "NoEconomicArgument"
+        }
+      ],
+      "evidence": "—"
+    },
+    "14_lineage": {
+      "inherited": [
+        "Apache TVM [7]·TensorIR autotuning [16,52]",
+        "UPMEM 상용 DPU",
+        "PrIM 라이브러리 [23]",
+        "PIM 텐서 IR 코드생성 [26](=PIMFlow 계열)"
+      ],
+      "coined": [
+        "DRAM-PIM용 완전 자동 autotuning 텐서 컴파일러",
+        "host·kernel joint search space"
+      ],
+      "transmitted": [],
+      "abandoned": [],
+      "evidence": "§1; §9"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "9a_hw_change",
+      "silence": "OutOfScope",
+      "note": "컴파일러 논문 — HW 무변경이 전제"
+    },
+    {
+      "axis": "13_econ",
+      "silence": "OutOfScope"
+    }
+  ],
+  "relations": [
+    {
+      "target": "pimflow-cgo-23",
+      "shared_axes": [
+        "8a_offload_mech",
+        "2a_approach",
+        "6b_workload_class"
+      ],
+      "divergent_axes": [
+        "2b_technology",
+        "10_application"
+      ],
+      "type": "complements",
+      "direction": "undirected",
+      "note": "동일 1저자(Yongwon Shin) 계열 DRAM-PIM 텐서 컴파일러. PIMFlow=Newton-DRAM-PIM/CNN/시뮬레이션, ATiM=UPMEM/LLM/실HW autotuning. 같은 8a(컴파일 스택)를 다른 HW·워크로드로 확장"
+    },
+    {
+      "target": "pathfinding-pim-hpca-24",
+      "shared_axes": [
+        "2b_technology",
+        "3_programmability"
+      ],
+      "divergent_axes": [
+        "8a_offload_mech",
+        "9b_verify"
+      ],
+      "type": "complements",
+      "direction": "undirected",
+      "note": "둘 다 UPMEM 대상. PathFinding=특성화+시뮬레이터(uPIMulator), ATiM=autotuning 컴파일러(실HW). UPMEM SW 생태계를 서로 다른 층에서 보강"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#4",
+      "resolution": "pass",
+      "note": "Location=HostOnly ↔ HW=NoHWChange, SW Stack(TVM autotuning 컴파일러)이 실질 기여"
+    },
+    {
+      "check": "#7",
+      "resolution": "pass",
+      "note": "11a=RealHardware ↔ 11c=Silicon-Validated 일치(실 UPMEM 측정)"
+    }
+  ]
+}

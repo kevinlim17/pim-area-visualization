@@ -1,0 +1,380 @@
+{
+  "schema_version": "0.1",
+  "id": "pathfinding-pim-hpca-24",
+  "title": "Pathfinding Future PIM Architectures by Demystifying a Commercial PIM Technology",
+  "bib": "B. Hyun, T. Kim, D. Lee, and M. Rhu, \"Pathfinding Future PIM Architectures by Demystifying a Commercial PIM Technology,\" in Proc. IEEE Int. Symp. High-Performance Computer Architecture (HPCA), 2024, doi:10.1109/HPCA57654.2024.00029.",
+  "year": 2024,
+  "mode": "standard",
+  "file": "pim/pathfinding-pim-hpca-24.pdf",
+  "digest": null,
+  "one_line": "상용 범용 PIM(UPMEM)이 실물로 나왔지만 아무도 뜯어볼 도구가 없던 자리에, PathFinding은 UPMEM 소스를 LLVM 툴체인으로 기계명령까지 낮춰 사이클 수준으로 돌리는 오픈 시뮬레이터 uPIMulator를 만들어 실칩과 교차검증하고, DPU 간 통신·ILP·벡터 부재 같은 미래 PIM이 풀어야 할 축을 특성화로 짚는 방법론 논문.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "HostOnly",
+          "primary": true,
+          "note": "artifact: 논문은 하드웨어를 제안하지 않고 시뮬레이터·특성화를 제공"
+        }
+      ],
+      "explored": "Bank(UPMEM DPU per bank) + BufferChip(UPMEM DDR4 DIMM). 칩당 8 DPU, 최대 2560 DPU",
+      "evidence": "§II-A (DPU per bank); §II-B (uPIMulator)"
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "Agnostic",
+          "primary": true,
+          "note": "artifact 방법론"
+        },
+        {
+          "v": "PNM",
+          "note": "explored: UPMEM DPU"
+        }
+      ],
+      "evidence": "§I; §II-A"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "UPMEM",
+          "primary": true,
+          "note": "explored: DDR4 DIMM 기반, DPU+64MB MRAM per bank"
+        }
+      ],
+      "evidence": "§II-A"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "ProgrammableCore",
+          "primary": true,
+          "note": "explored: in-order 14-stage RISC DPU, fine-grained multithreading 24 tasklet, SPMD"
+        }
+      ],
+      "precision": [],
+      "evidence": "§II-A"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true,
+          "note": "DPU per bank"
+        },
+        {
+          "v": "Rank"
+        },
+        {
+          "v": "Module",
+          "note": "up to 2560 DPUs across DIMMs"
+        }
+      ],
+      "evidence": "§II-A"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Application",
+          "primary": true,
+          "note": "explored: 호스트가 DPU 전체에 프로그램 바이너리를 오프로드(SPMD 커널)"
+        }
+      ],
+      "evidence": "§II-A (offload program binary to all DPUs)"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Word"
+        },
+        {
+          "v": "Vector",
+          "note": "제안: 미래 PIM에 벡터 처리 필요"
+        }
+      ],
+      "evidence": "§II-A; §V-A"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "DMA",
+          "primary": true,
+          "note": "CPU↔DPU를 Intel AVX read/write로 전송, 비대칭 대역폭"
+        },
+        {
+          "v": "MessagePassing",
+          "note": "DPU 간 직접 공유 불가, 호스트 경유"
+        }
+      ],
+      "evidence": "§II-A; §III"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "NoCoherence",
+          "primary": true,
+          "note": "DPU 간 데이터 공유·동기 불가, 단일 공유 주소공간으로 가상화 안 됨. 호스트가 명시적 이동"
+        }
+      ],
+      "evidence": "§II-A; §II-C"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "KernelBoundarySync",
+          "primary": true,
+          "note": "커널 종료 후 CPU가 결과 복사"
+        }
+      ],
+      "evidence": "§II-A"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Quantitative-Profiling",
+          "primary": true,
+          "note": "IPC(compute) vs DRAM read bandwidth(memory) 특성화"
+        }
+      ],
+      "metrics": [
+        "BandwidthUtilization"
+      ],
+      "evidence": "§IV characterization"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Static-Programmer",
+          "primary": true,
+          "note": "explored: 프로그래머가 DPU·스레드에 데이터 수동 분할"
+        }
+      ],
+      "evidence": "§II-A"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "DesignSpaceCost",
+          "primary": true,
+          "note": "오픈·유연 UPMEM 시뮬레이터로 미래 PIM 탐색 장벽을 낮춤"
+        },
+        {
+          "v": "ProgrammingBurden",
+          "note": "특성화로 UPMEM의 프로그래밍·통신 한계를 정량 노출(해결이 아니라 규명)"
+        }
+      ],
+      "evidence": "§I 기여; §IV·V"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "CompilerPass",
+          "primary": true,
+          "note": "UPMEM 오픈 LLVM 툴체인으로 소스→기계명령. uPIMulator는 ANTLR 기반 자체 linker/assembler 추가"
+        }
+      ],
+      "ir_level": [
+        "LLVM-IR",
+        "Backend-CodeGen"
+      ],
+      "note": "Kevin의 LLVM 관심과 직결 — 컴파일 산출 기계명령을 사이클 시뮬레이터가 소비",
+      "evidence": "§I; §II-B"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "DeviceDriver",
+          "primary": true,
+          "note": "remap: DriverRuntime는 8a 값. UPMEM 실제 디바이스 드라이버"
+        }
+      ],
+      "evidence": "§II-A"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "NoHWChange",
+          "primary": true,
+          "note": "artifact: 시뮬레이터. 벡터·ILP 등 미래 HW 기능은 제안만"
+        }
+      ],
+      "evidence": "§II-B; §V"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "SimulationOnly",
+          "primary": true,
+          "note": "cycle-level uPIMulator"
+        },
+        {
+          "v": "RealCommercialPIM",
+          "note": "실제 UPMEM-PIM 시스템으로 교차검증"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "General-Purpose",
+          "primary": true,
+          "note": "graph·ML·bioinformatics. PrIM 16개 벤치(GEMV 등)"
+        }
+      ],
+      "evidence": "§III Table II (PrIM)"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "CycleAccurateSim",
+          "primary": true
+        },
+        {
+          "v": "RealHardware",
+          "note": "검증용 실 UPMEM 측정"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "In-House",
+          "note": "uPIMulator (오픈소스)"
+        },
+        {
+          "v": "Ramulator",
+          "note": "가장 빠른 DRAM 시뮬레이터로 참조 [69]"
+        }
+      ],
+      "evidence": "§II-B"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "Silicon-Validated",
+          "primary": true,
+          "note": "실 UPMEM-PIM과 PrIM으로 교차검증: 단일 DPU 98.4% 상관·MAE 12.0%, 다중 DPU 83.6% 상관"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "PriorPIM",
+          "primary": true,
+          "note": "remap: 실측 UPMEM을 선행 PIM 기준선으로 취급"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "IdentityMapped",
+          "primary": true,
+          "note": "explored: UPMEM에 MMU 없음, 별도 비가상화 PIM 주소공간"
+        },
+        {
+          "v": "SegmentBased",
+          "note": "MRAM/WRAM/IRAM 분리 물리 맵"
+        }
+      ],
+      "evidence": "§II-A·C (no MMU)"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "Programmer-Managed",
+          "primary": true,
+          "note": "DPU·스레드 간 입력 수동 파티션"
+        }
+      ],
+      "evidence": "§II-A"
+    },
+    "13_econ": {
+      "tags": [
+        {
+          "v": "NoEconomicArgument"
+        }
+      ],
+      "note": "PIM 미상용화 원인(설계 오버헤드·killer app 부재)을 서두에 정성 언급하나 정량 경제 분석은 아님",
+      "evidence": "§I"
+    },
+    "14_lineage": {
+      "inherited": [
+        "UPMEM 상용 DPU 아키텍처",
+        "PrIM 벤치마크 [3]",
+        "Ramulator"
+      ],
+      "coined": [
+        "uPIMulator (오픈 UPMEM 사이클 시뮬레이터)"
+      ],
+      "transmitted": [
+        {
+          "to": "future general-purpose PIM (vector·ILP·inter-DPU comm)",
+          "form": "Reframed"
+        }
+      ],
+      "abandoned": [],
+      "evidence": "§I; §V"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "9a_hw_change",
+      "silence": "OutOfScope",
+      "note": "미래 HW 기능(벡터·ILP)을 case study로 모델링만, 실제 설계·구현은 범위 밖 — 정당"
+    },
+    {
+      "axis": "13_econ",
+      "silence": "OutOfScope",
+      "note": "특성화 논문이라 경제 구조는 대상 아님"
+    }
+  ],
+  "relations": [
+    {
+      "target": "newton-micro-20",
+      "shared_axes": [
+        "2a_approach"
+      ],
+      "divergent_axes": [
+        "1_location",
+        "3_programmability",
+        "10_application"
+      ],
+      "type": "disjoint",
+      "direction": "undirected",
+      "note": "PathFinding이 서두에 나눈 domain-specific PIM(Samsung/Hynix — Newton이 여기) vs general-purpose PIM(UPMEM) 축의 반대편. 하나는 FixedFunction 제품 설계, 하나는 ProgrammableCore 특성화. 층위·철학 모두 다름"
+    },
+    {
+      "target": "attacc-apslos-24",
+      "shared_axes": [
+        "2a_approach"
+      ],
+      "divergent_axes": [
+        "1_location",
+        "3_programmability",
+        "6b_workload_class"
+      ],
+      "type": "disjoint",
+      "direction": "undirected",
+      "note": "AttAcc=attention 점 설계(HW), PathFinding=범용 PIM 특성화·툴. 층위 다름"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#4",
+      "resolution": "pass",
+      "note": "artifact Location=HostOnly ↔ HW=NoHWChange 일치, SW Stack(uPIMulator·LLVM 툴체인)이 실질 기여"
+    },
+    {
+      "check": "DSE",
+      "resolution": "pass",
+      "note": "explored(UPMEM DPU) / artifact(uPIMulator) 두 층 분리 표기. baseline은 다른 아키텍처가 아니라 실 UPMEM 대조(검증 목적)"
+    }
+  ]
+}

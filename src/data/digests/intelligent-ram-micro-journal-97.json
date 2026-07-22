@@ -1,0 +1,184 @@
+{
+  "schema_version": "0.1",
+  "id": "intelligent-ram-micro-journal-97",
+  "title": "A Case for Intelligent RAM",
+  "bib": "D. Patterson, T. Anderson, N. Cardwell, R. Fromm, K. Keeton, C. Kozyrakis, R. Thomas, and K. Yelick, \"A Case for Intelligent RAM,\" IEEE Micro, vol. 17, no. 2, pp. 34-44, 1997.",
+  "year": 1997,
+  "mode": "precursor",
+  "mode_reason": "before-pim/ 하위, 1997년, 평가가 세 IRAM 설계의 봉투 계산·해석 추정뿐, 제목이 'A Case for ...'인 전형적 논변(case) 논문",
+  "file": "pim/before-pim/intelligent-ram-micro-journal-97.pdf",
+  "digest": null,
+  "one_line": "프로세서와 DRAM을 다른 공정·다른 칩으로 만드는 관행이 메모리 벽을 낳던 자리에, IRAM은 프로세서를 DRAM 다이에 통째로 합쳐 지연↓·대역폭↑·에너지↓를 논변한 원형 — 단일 다이 통합은 경제성에 막혀 버려졌지만 '메모리에 연산을'이라는 아이디어가 20여 년 뒤 3D 적층으로 부활한다.",
+
+  "axes": {
+    "1_location": {
+      "tags": [ { "v": "SameDie-Processor", "primary": true, "note": "프로세서를 DRAM 다이에 통째로 통합, 메모리는 그 프로세서의 로컬 자원" } ],
+      "evidence": "요약; 'merges processing and memory into a single chip'"
+    },
+    "2a_approach": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "PUM/PNM 이분법([S1] §5.2)이 1997년엔 개념으로 부재 → Anachronistic. [S1]이 PIM 계보의 원류로 편입",
+      "evidence": "—"
+    },
+    "2b_technology": {
+      "tags": [ { "v": "eDRAM", "primary": true, "note": "on-die DRAM(로직 공정 한 다이에 DRAM)" } ],
+      "evidence": "본문 (single chip DRAM+logic)"
+    },
+    "3_programmability": {
+      "tags": [ { "v": "ProgrammableCore", "primary": true, "note": "범용 마이크로프로세서(및 벡터 IRAM 변형)를 다이에 통합" } ],
+      "precision": [ "FP64" ],
+      "evidence": "세 IRAM 설계 (유니프로세서/벡터)"
+    },
+    "4a_parallelism": {
+      "tags": [ { "v": "Die", "primary": true, "note": "단일 다이 프로세서+메모리" } ],
+      "evidence": "본문"
+    },
+    "4b_offload": {
+      "tags": [ { "v": "NoOffload-Resident", "primary": true, "note": "호스트-PIM 경계 없음 — 프로그램이 IRAM에서 직접 실행" } ],
+      "note": "v1.1에서 IRAM이 승격시킨 태그",
+      "evidence": "본문"
+    },
+    "4c_data_gran": {
+      "tags": [ { "v": "Word" }, { "v": "Vector", "note": "벡터 IRAM 변형" } ],
+      "evidence": "세 IRAM 설계"
+    },
+    "5a_comm": {
+      "tags": [ { "v": "SharedMemory", "primary": true, "note": "온다이 프로세서가 로컬 DRAM을 직접 접근" } ],
+      "evidence": "본문"
+    },
+    "5b_coherency": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "호스트-PIM 경계가 없어 두 주체 사이 코히런스 문제가 성립하지 않음 → Dissolved. 대가: on-die DRAM 용량 벽",
+      "evidence": "—"
+    },
+    "5c_consistency": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "평범한 단일 프로세서 메모리 모델 → PIM 고유 문제 없음(Dissolved 경향)",
+      "evidence": "—"
+    },
+    "6a_workload_analysis": {
+      "tags": [ { "v": "Quantitative-Profiling", "primary": true, "note": "Alpha 21164의 CPI·캐시 미스·메모리 계층 시간 분해(Table 1·2)로 메모리 벽을 정량화" } ],
+      "metrics": [ "MPKI", "EnergyBreakdown" ],
+      "evidence": "Table 1·2 (Alpha 21164 SPEC92)"
+    },
+    "6b_workload_class": {
+      "tags": [ { "v": "None", "primary": true, "note": "호스트-PIM 분할 판정 로직 없음(경계가 없으므로)" } ],
+      "evidence": "본문"
+    },
+    "7a_solved": {
+      "tags": [
+        { "v": "MemoryLatency", "note": "온다이 접근으로 지연↓" },
+        { "v": "OffChipBandwidth", "note": "온다이 대역폭↑" },
+        { "v": "DataMovementEnergy", "note": "에너지 효율↑" }
+      ],
+      "evidence": "요약; Why there is a problem"
+    },
+    "8a_offload_mech": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "컴파일·프로그래밍 모델은 case 논문 범위 밖 → OutOfScope",
+      "evidence": "—"
+    },
+    "8b_os_runtime": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "OutOfScope",
+      "evidence": "—"
+    },
+    "9a_hw_change": {
+      "tags": [ { "v": "MonolithicIntegration", "primary": true, "note": "셀은 두고 로직을 DRAM 공정 한 다이에 통합 — 비용이 면적이 아니라 웨이퍼 단가·수율·로직 감속으로 나타남" } ],
+      "area_overhead": "웨이퍼 프리미엄·로직 감속(대략 1.3~2.0배)으로 나타남 (IRAM 분석)",
+      "note": "v1.1에서 IRAM이 승격시킨 태그. 축 13과 거의 항상 함께",
+      "evidence": "본문 (fabrication 논의)"
+    },
+    "9b_verify": {
+      "tags": [ { "v": "AnalyticalOnly", "primary": true, "note": "세 IRAM 설계의 성능·에너지 봉투 추정" } ],
+      "evidence": "요약 (estimates performance and energy efficiency of three IRAM designs)"
+    },
+    "10_application": {
+      "tags": [ { "v": "General-Purpose", "primary": true, "note": "범용 컴퓨팅(데스크톱·서버). SPEC 벤치" } ],
+      "evidence": "본문; Table 2"
+    },
+    "11a_eval_method": {
+      "tags": [ { "v": "AnalyticalModel", "primary": true, "note": "봉투 계산·해석 추정" } ],
+      "evidence": "본문"
+    },
+    "11b_tools": {
+      "tags": [ { "v": "Not specified" } ],
+      "evidence": "—"
+    },
+    "11c_validation": {
+      "tags": [ { "v": "Unvalidated", "primary": true, "note": "precursor — 검증이 아니라 논변" } ],
+      "evidence": "—"
+    },
+    "11d_baseline": {
+      "tags": [ { "v": "CPU", "primary": true, "note": "300MHz Alpha 21164 / AlphaServer 8200 (SPEC92) — 이미 사멸한 baseline" } ],
+      "note": "speedup 수치는 골동품. 값어치는 아이디어 계보에 있음(precursor)",
+      "evidence": "Table 1·2"
+    },
+    "12a_translation": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "평범한 CPU의 평범한 가상 메모리 → PIM 고유 번역 문제 없음(Dissolved)",
+      "evidence": "—"
+    },
+    "12b_mapping": {
+      "tags": [ { "v": "Not addressed" } ],
+      "note": "단일 다이라 PIM-aware 배치 문제가 발생하지 않음(Dissolved)",
+      "evidence": "—"
+    },
+    "13_econ": {
+      "tags": [
+        { "v": "FabricationOwner: DRAMVendor", "primary": true, "note": "DRAM 업체가 프로세서를 넣어야 함" },
+        { "v": "ProcessConflict", "note": "빠른 로직 공정 vs 고밀도 DRAM 공정 충돌 — 웨이퍼 프리미엄·로직 감속" },
+        { "v": "CommodityInterchangeability", "note": "SIMM/DIMM 표준 확장성과의 긴장" }
+      ],
+      "note": "논문의 심장이 경제 논증 — 1995년 DRAM $37B·MPU $20B 산업 분리, 스케일링 비대칭. 통합의 대가를 웨이퍼 단가·수율·감속으로 논함",
+      "evidence": "Why there is a problem; 산업 규모 수치"
+    },
+    "14_lineage": {
+      "inherited": [ "메모리 벽 문제 정식화(Alpha 21164 프로파일)", "processor-in-memory 초기 아이디어" ],
+      "coined": [ "IRAM (Intelligent RAM)", "vector IRAM 방향" ],
+      "transmitted": [
+        { "to": "3D 적층 PIM(HBM-PIM 등)", "form": "Transformed", "note": "'메모리에 연산을'이 단일 다이 통합이 아니라 3D 적층으로 실현" },
+        { "to": "Smart Memories (2000)", "form": "Direct", "note": "IRAM을 [6]으로 인용·비판적 계승" },
+        { "to": "Newton 등 상용 PIM", "form": "Transformed", "note": "near-bank MAC 제품으로" }
+      ],
+      "abandoned": [
+        { "what": "단일 다이 프로세서+DRAM 완전 통합", "why": "EconomicallyInfeasible", "note": "웨이퍼 프리미엄·수율·공정 충돌. 3D 적층이 대체" }
+      ],
+      "evidence": "요약; [S1]"
+    }
+  },
+
+  "not_addressed": [
+    { "axis": "2a_approach", "silence": "Anachronistic", "note": "PUM/PNM 이분법 부재" },
+    { "axis": "5b_coherency", "silence": "Dissolved", "note": "호스트-PIM 경계 없음. 대가: on-die DRAM 용량 벽" },
+    { "axis": "12a_translation", "silence": "Dissolved", "note": "평범한 CPU 가상 메모리 — PIM 고유 번역 문제 없음" },
+    { "axis": "12b_mapping", "silence": "Dissolved", "note": "단일 다이 — 피연산자 co-location 제약 없음" },
+    { "axis": "8a_offload_mech", "silence": "OutOfScope", "note": "case 논문 — SW 스택 범위 밖" }
+  ],
+
+  "relations": [
+    {
+      "target": "smart-memories-isca-00",
+      "shared_axes": [ "13_econ", "1_location" ],
+      "divergent_axes": [ "3_programmability" ],
+      "type": "lineage",
+      "direction": "to_target",
+      "note": "IRAM(1997) → Smart Memories(2000). Smart Memories가 IRAM을 [6]으로 인용하며 '범용 통합 시도의 한계'로 비판적 계승. IRAM=SameDie-Processor(full core), SM=SameDie-Peer(reconfigurable tile)"
+    },
+    {
+      "target": "newton-micro-20",
+      "shared_axes": [ "13_econ", "9a_hw_change" ],
+      "divergent_axes": [ "1_location", "3_programmability" ],
+      "type": "lineage",
+      "direction": "to_target",
+      "note": "원류 → 상용 후손. '메모리에 연산을'이 단일 다이 통합(IRAM)에서 3D 적층 near-bank MAC(Newton)으로 Transformed. IRAM=ProgrammableCore, Newton=FixedFunction"
+    }
+  ],
+
+  "other_tags": [],
+
+  "consistency_flags": [
+    { "check": "#12", "resolution": "pass", "note": "Location=SameDie-Processor → 5b·12a 코히런스·번역 Dissolved 확인" },
+    { "check": "precursor", "resolution": "note", "note": "9a=MonolithicIntegration ↔ 13 경제 축이 함께 채워짐. 봉투 계산 baseline(Alpha 21164) 사멸 명시" }
+  ]
+}

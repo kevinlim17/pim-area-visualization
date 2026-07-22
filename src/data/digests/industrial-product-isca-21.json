@@ -1,0 +1,386 @@
+{
+  "schema_version": "0.1",
+  "id": "industrial-product-isca-21",
+  "title": "Hardware Architecture and Software Stack for PIM Based on Commercial DRAM Technology",
+  "bib": "S. Lee, S.-h. Kang, J. Lee, H. Kim, E. Lee, S. Seo, H. Yoon, S. Lee, K. Lim, H. Shin, J. Kim, S. O, A. Iyer, D. Wang, K. Sohn, and N. S. Kim, \"Hardware Architecture and Software Stack for PIM Based on Commercial DRAM Technology: Industrial Product,\" in Proc. ISCA, 2021.",
+  "year": 2021,
+  "mode": "standard",
+  "file": "pim/industrial-product-isca-21.pdf",
+  "digest": null,
+  "one_line": "선행 PIM이 호스트·앱 변경을 요구해 DRAM 제조사가 못 만들던 문제를, 셀·뱅크 구조를 안 건드리고 JEDEC 호환 drop-in으로 만들어 20nm 실리콘으로 실제 양산한 Samsung HBM-PIM(Aquabolt-XL) — Newton이 미룬 SW 스택까지 갖춘 실물 제품.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true,
+          "note": "뱅크당 SIMD 유닛(PCU), bank-level parallelism 활용"
+        },
+        {
+          "v": "Periphery",
+          "note": "bank group I/O 주변"
+        }
+      ],
+      "evidence": "§III; §IV Fig."
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "PNM",
+          "primary": true,
+          "note": "셀/어레이 미변경, 뱅크 근처 디지털 SIMD 로직 추가"
+        }
+      ],
+      "evidence": "Abstract; §III"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "HBM",
+          "primary": true,
+          "note": "HBM2(Aquabolt) 기반, 20nm DRAM 공정"
+        }
+      ],
+      "evidence": "Abstract; §III"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "SIMDLanes",
+          "primary": true,
+          "note": "16-lane FP16 SIMD PCU, 명령 구동"
+        }
+      ],
+      "precision": [
+        "FP16"
+      ],
+      "evidence": "§III; §IV"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true
+        },
+        {
+          "v": "Channel"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Operator",
+          "primary": true,
+          "note": "GEMV/AXPY 등 memory-bound 연산"
+        }
+      ],
+      "evidence": "§III; §VII"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Vector",
+          "note": "256-bit 뱅크 대역폭에 맞춘 SIMD"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "CustomDRAMCommand",
+          "primary": true,
+          "note": "JEDEC 호환 명령 확장"
+        },
+        {
+          "v": "MemoryMappedIO"
+        }
+      ],
+      "evidence": "§III; §V"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "Host-Driven-NoAutonomousWrite",
+          "primary": true,
+          "note": "호스트 프로세서가 제어하도록 설계, PIM 자율 쓰기 없음 — drop-in 성립의 핵심"
+        }
+      ],
+      "evidence": "Abstract; §III"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "KernelBoundarySync",
+          "estimated": true,
+          "note": "명시적 모델 서술 없음"
+        }
+      ],
+      "evidence": "—"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Qualitative",
+          "note": "memory-bound 층 대상"
+        },
+        {
+          "v": "Quantitative-Profiling",
+          "note": "에너지/대역폭 분석"
+        }
+      ],
+      "metrics": [
+        "EnergyBreakdown",
+        "BandwidthUtilization"
+      ],
+      "evidence": "§II; §VII"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Static-Programmer",
+          "note": "SW 스택이 오프로드 대상 지정"
+        }
+      ],
+      "evidence": "§VI"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "OffChipBandwidth",
+          "primary": true,
+          "note": "bank-level parallelism로 내부 대역폭 노출"
+        },
+        {
+          "v": "DataMovementEnergy",
+          "note": "bit 전송 에너지 3.5× 절감"
+        },
+        {
+          "v": "ComputeThroughput"
+        }
+      ],
+      "evidence": "Abstract; §VII"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "LibraryAPI",
+          "primary": true,
+          "note": "PIM 라이브러리"
+        },
+        {
+          "v": "FrameworkPlugin",
+          "note": "TensorFlow 등 ML 프레임워크 지원"
+        },
+        {
+          "v": "DriverRuntime"
+        }
+      ],
+      "ir_level": [],
+      "evidence": "§VI (SW stack)"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "DeviceDriver",
+          "primary": true,
+          "note": "드라이버·런타임 스택 제공"
+        },
+        {
+          "v": "RuntimeScheduler"
+        }
+      ],
+      "evidence": "§VI"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "MinimalDRAMChange",
+          "primary": true,
+          "note": "셀 어레이·뱅크 구조 미변경"
+        },
+        {
+          "v": "PeripheryAddition",
+          "note": "뱅크 근처 PCU 추가"
+        }
+      ],
+      "area_overhead": "뱅크당 SIMD 유닛(정량은 IP 보호로 제한 공개)",
+      "evidence": "Abstract; §III"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "RealCommercialPIM",
+          "primary": true,
+          "note": "20nm DRAM 공정으로 실제 fabrication"
+        },
+        {
+          "v": "ASIC-Tapeout"
+        }
+      ],
+      "evidence": "Abstract; §III; §VII"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "CNN"
+        },
+        {
+          "v": "RNN-LSTM"
+        },
+        {
+          "v": "MLP"
+        },
+        {
+          "v": "General-Purpose",
+          "note": "memory-bound DNN 층 일반"
+        }
+      ],
+      "evidence": "§II; §VII"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "RealHardware",
+          "primary": true,
+          "note": "실측"
+        },
+        {
+          "v": "CycleAccurateSim",
+          "note": "시스템 통합 평가"
+        }
+      ],
+      "evidence": "§VII"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "In-House"
+        }
+      ],
+      "evidence": "§VII"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "Silicon-Validated",
+          "primary": true,
+          "note": "실 fabrication silicon 측정"
+        }
+      ],
+      "evidence": "§VII"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "GPU",
+          "note": "상용 시스템"
+        },
+        {
+          "v": "PriorPIM",
+          "note": "conventional DDR4/HBM 대비"
+        }
+      ],
+      "evidence": "§VII"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "HostTLB",
+          "primary": true,
+          "note": "JEDEC 호환 drop-in — 호스트 주소 체계 그대로"
+        }
+      ],
+      "evidence": "§III; §V"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "DefaultInterleaving",
+          "note": "JEDEC 호환 유지"
+        },
+        {
+          "v": "BankAligned"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "13_econ": {
+      "tags": [
+        {
+          "v": "FabricationOwner: DRAMVendor",
+          "primary": true,
+          "note": "DRAM 제조사가 호스트 변경 없이 양산 — 논문 핵심 동기"
+        },
+        {
+          "v": "CommodityInterchangeability",
+          "note": "JEDEC 호환 drop-in replacement"
+        },
+        {
+          "v": "StandardizationPath",
+          "note": "JEDEC 규격 준수"
+        }
+      ],
+      "evidence": "Abstract; §I; §III"
+    },
+    "14_lineage": {
+      "inherited": [
+        "과거 PIM 아키텍처 재고",
+        "2.5D/3D 스택 통합 기술",
+        "bank-level parallelism"
+      ],
+      "coined": [
+        "JEDEC 호환 drop-in HBM-PIM 상용화 + 전체 SW 스택",
+        "Aquabolt-XL"
+      ],
+      "transmitted": [
+        "→ AttAcc 등 HBM-PIM 계보",
+        "→ GDDR6-AiM 등 후속 상용 PIM"
+      ],
+      "abandoned": [],
+      "evidence": "§I; §II"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "5c_consistency",
+      "silence": "OutOfScope",
+      "partial_evaded": false,
+      "note": "명시적 일관성 모델 서술 없음 (호스트 구동이라 사실상 필요 낮음)"
+    }
+  ],
+  "relations": [
+    {
+      "target": "newton-micro-20",
+      "shared_axes": [
+        "1_location",
+        "2a_approach",
+        "2b_technology",
+        "3_programmability",
+        "5b_coherency"
+      ],
+      "divergent_axes": [
+        "9b_verify",
+        "8a_offload_mech"
+      ],
+      "type": "competes",
+      "direction": "undirected",
+      "note": "둘 다 near-bank HBM PNM DRAM-제조사 제품(Samsung vs SK Hynix). Newton은 시뮬레이션·SW 스택 미제시, 본 논문은 실 silicon + 전체 SW 스택 — Newton이 companion으로 미룬 SW 스택 공백을 실제로 메움"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#13",
+      "resolution": "pass",
+      "note": "Bank + 디지털 SIMD 로직 → PNM 정합"
+    },
+    {
+      "check": "#7",
+      "resolution": "pass",
+      "note": "RealHardware(11a)/Silicon-Validated(11c) — 실측이 곧 검증, 정합"
+    }
+  ]
+}

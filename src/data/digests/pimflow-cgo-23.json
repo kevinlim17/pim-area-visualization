@@ -1,0 +1,354 @@
+{
+  "schema_version": "0.1",
+  "id": "pimflow-cgo-23",
+  "title": "PIMFlow: Compiler and Runtime Support for CNN Models on Processing-in-Memory DRAM",
+  "bib": "Y. Shin, J. Park, S. Cho, and H. Sung, \"PIMFlow: Compiler and Runtime Support for CNN Models on Processing-in-Memory DRAM,\" in Proc. 21st ACM/IEEE Int. Symp. Code Generation and Optimization (CGO), 2023, pp. 49-62.",
+  "year": 2023,
+  "mode": "standard",
+  "file": "pim/codelab/pimflow-cgo-23.pdf",
+  "digest": null,
+  "one_line": "Newton류 DRAM-PIM은 GEMV만 노려 CNN의 conv 층은 PIM 대상 밖이던 자리에, PIMFlow는 모델 그래프를 PIM-aware하게 변형해 conv를 쪼개고(GPU-PIM inter-node 병렬) TVM 백엔드로 낮춰, 하드웨어를 안 건드리고도 CNN을 최대 82% 가속하는 컴파일러·런타임.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "HostOnly",
+          "primary": true,
+          "note": "artifact: 컴파일러·런타임. HW 미변경(GWRITE 명령 의미만 확장·재사용)"
+        }
+      ],
+      "explored": "Newton류 DRAM-PIM(Bank near-bank MAC) — baseline [26]",
+      "evidence": "§2.1; §4"
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "Agnostic",
+          "primary": true,
+          "note": "artifact 컴파일러"
+        },
+        {
+          "v": "PNM",
+          "note": "explored: Newton digital DRAM-PIM"
+        }
+      ],
+      "evidence": "§2.1"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "CommodityDRAM",
+          "primary": true,
+          "note": "explored: PIM-enabled GPU memory(Newton류 DRAM-PIM)"
+        }
+      ],
+      "evidence": "§2.1; §4.1"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "FixedFunction",
+          "primary": true,
+          "note": "explored: Newton의 GEMV/MAC 고정 기능을 대상으로 코드 생성"
+        }
+      ],
+      "precision": [],
+      "evidence": "§2.1"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true,
+          "note": "explored: bank-level MV"
+        },
+        {
+          "v": "Channel"
+        }
+      ],
+      "evidence": "§2.1"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Sub-Operator",
+          "primary": true,
+          "note": "conv 연산자를 레이어 아래로 쪼개 일부만 PIM 오프로드(그래프 변형으로 노드 증식)"
+        }
+      ],
+      "note": "v1.1에서 PIMFlow가 승격시킨 태그",
+      "evidence": "§4.2 multi-device parallelization pass"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Tensor"
+        },
+        {
+          "v": "DRAMRow"
+        }
+      ],
+      "evidence": "§4"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "CustomDRAMCommand",
+          "primary": true,
+          "note": "GWRITE/G_ACT-COMP-READRES 재사용 + Strided GWRITE 확장"
+        },
+        {
+          "v": "MemoryMappedIO"
+        }
+      ],
+      "evidence": "§4.1"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "GPU-L2-WriteThrough",
+          "primary": true,
+          "note": "GPU L2를 write-through로 강제해 dirty line 자체를 없애는 회피책 — 코히런스 프로토콜도 uncacheable 영역도 아님"
+        }
+      ],
+      "note": "taxonomy 일회성 예외(미승격). 비슷한 캐시 정책 회피가 2편 더 나오면 승격 재검토",
+      "evidence": "§4.1 (GPU L2 cache)"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "KernelBoundarySync",
+          "estimated": true,
+          "note": "task-level 병렬 실행, 노드 경계 동기"
+        }
+      ],
+      "evidence": "§4.2"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Roofline",
+          "primary": true,
+          "note": "conv 층별 arithmetic intensity(#MAC/#LD-ST) 분석으로 PIM 후보 식별"
+        }
+      ],
+      "metrics": [
+        "ArithmeticIntensity"
+      ],
+      "evidence": "§3 Fig.1"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Search-Based",
+          "primary": true,
+          "note": "conv 층마다 최적 오프로딩(멀티디바이스·pipelined·hetero) 옵션 탐색"
+        }
+      ],
+      "evidence": "§4.2"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "ComputeThroughput",
+          "note": "PIM 미활용 conv를 오프로드 가능하게 변형해 PIM 이용률↑"
+        },
+        {
+          "v": "ProgrammingBurden",
+          "note": "수동 오프로드 지정 대신 그래프 자동 변형"
+        }
+      ],
+      "evidence": "§1; §4"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "CompilerPass",
+          "primary": true,
+          "note": "ONNX→Relay→TVM. PIM-Aware Graph Transformation(멀티디바이스·pipelining pass) + PIM code generator"
+        }
+      ],
+      "ir_level": [
+        "TVM-TE-TIR",
+        "Custom-IR"
+      ],
+      "note": "Kevin의 관심(그래프/커널 낮춤)과 정면으로 겹침 — TVM 백엔드로 DRAM-PIM 커널 생성",
+      "evidence": "§4 Fig.5 (ONNX to Relay ... TVM DRAM-PIM back-end)"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "RuntimeScheduler",
+          "primary": true,
+          "note": "remap: DriverRuntime는 8a 값. PimFlow 8b는 프로파일 기반 런타임 스케줄링"
+        }
+      ],
+      "evidence": "§4 (separate device driver for address mapping)"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "NoHWChange",
+          "primary": true,
+          "note": "GWRITE 명령 의미 확장·재사용 외 하드웨어 무변경"
+        }
+      ],
+      "evidence": "§4.1"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "SimulationOnly",
+          "primary": true
+        }
+      ],
+      "evidence": "§5"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "CNN",
+          "primary": true,
+          "note": "1x1/pointwise·depthwise separable conv 중심(EfficientNet, MobileNetV2, ResNet50, VGG16)"
+        }
+      ],
+      "evidence": "§3; §5"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "TraceDrivenSim",
+          "primary": true,
+          "note": "GPGPU-Sim(GPU) + Ramulator(DRAM-PIM)"
+        }
+      ],
+      "evidence": "§5"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "GPGPU-Sim"
+        },
+        {
+          "v": "Ramulator"
+        },
+        {
+          "v": "In-House",
+          "note": "TVM DRAM-PIM 백엔드"
+        }
+      ],
+      "evidence": "§5"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "PriorFigureReproduction",
+          "primary": true,
+          "note": "Newton의 비공개 구조를 published figure로 재현(taxonomy 기록: 20.4x vs 원 논문 50x). 검증 연쇄 성립 안 함"
+        }
+      ],
+      "note": "v1.1에서 PIMFlow가 승격시킨 태그. Cross-Simulator보다 약함",
+      "evidence": "§2.1; §5"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "GPU",
+          "primary": true,
+          "note": "NVIDIA RTX 2080 Ti"
+        }
+      ],
+      "note": "end-to-end 최대 82% speedup, 에너지 평균 26%↓ vs GPU",
+      "evidence": "§1; §5"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "note": "별도 device driver가 주소 매핑을 처리한다고만 언급, PIM 고유 번역은 깊이 안 다룸",
+      "evidence": "§4"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "Compiler-Directed-Layout",
+          "primary": true,
+          "note": "그래프 변형·PIM 코드 생성이 데이터 배치를 결정"
+        }
+      ],
+      "evidence": "§4.2"
+    },
+    "13_econ": {
+      "tags": [
+        {
+          "v": "NoEconomicArgument"
+        }
+      ],
+      "evidence": "—"
+    },
+    "14_lineage": {
+      "inherited": [
+        "Newton [26] 및 sister architecture [38]",
+        "TVM",
+        "선행 PIM SW 인터페이스 [27,33]"
+      ],
+      "coined": [
+        "PIM-aware graph transformation(inter-node GPU-PIM 병렬)",
+        "Strided GWRITE"
+      ],
+      "transmitted": [],
+      "abandoned": [],
+      "evidence": "§2.1; §4"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "12a_translation",
+      "silence": "OutOfScope",
+      "note": "컴파일러 논문 — 주소 번역은 device driver에 위임"
+    },
+    {
+      "axis": "13_econ",
+      "silence": "OutOfScope"
+    }
+  ],
+  "relations": [
+    {
+      "target": "newton-micro-20",
+      "shared_axes": [
+        "2a_approach",
+        "5a_comm"
+      ],
+      "divergent_axes": [
+        "1_location",
+        "8a_offload_mech"
+      ],
+      "type": "premise",
+      "direction": "from_target",
+      "note": "Newton을 baseline PIM으로 전제하고 그 §8a(컴파일러·프로그래밍 모델) 공백을 메우는 SW 층. Newton=HW(Bank), PIMFlow=HostOnly 컴파일러 — Newton의 §9는 이를 '층위 다름'으로 봄(비대칭 관점)"
+    },
+    {
+      "target": "atim-isca-25",
+      "shared_axes": [
+        "8a_offload_mech",
+        "2a_approach"
+      ],
+      "divergent_axes": [
+        "10_application"
+      ],
+      "type": "complements",
+      "direction": "undirected",
+      "note": "둘 다 상용 DRAM-PIM 대상 컴파일러 스택. PIMFlow=CNN 그래프 변형(TVM), ATiM=다른 워크로드·프레임 — 컴파일 접근의 이웃"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#4",
+      "resolution": "pass",
+      "note": "Location=HostOnly ↔ HW=NoHWChange 일치, SW Stack(TVM 컴파일러 pass)이 실질 기여"
+    }
+  ]
+}

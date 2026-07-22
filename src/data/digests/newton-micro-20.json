@@ -1,0 +1,406 @@
+{
+  "schema_version": "0.1",
+  "id": "newton-micro-20",
+  "title": "Newton: A DRAM-maker's Accelerator-in-Memory (AiM) Architecture for Machine Learning",
+  "bib": "M. He, C. Song, I. Kim, C. Jeong, S. Kim, I. Park, M. Thottethodi, and T. N. Vijaykumar, \"Newton: A DRAM-maker's Accelerator-in-Memory (AiM) Architecture for Machine Learning,\" in Proc. 53rd IEEE/ACM Int. Symp. Microarchitecture (MICRO), 2020, pp. 372-383.",
+  "year": 2020,
+  "mode": "standard",
+  "file": "pim/newton-micro-20.pdf",
+  "digest": "pim/digests/newton-micro-20.md",
+  "one_line": "선행 PIM이 메모리 안에 full core를 넣으려다 면적·전력 제약에 막힌 자리에, Newton은 뱅크당 MAC과 버퍼만 남기고 나머지를 전부 호스트로 밀어내 'DRAM과 구별되지 않는' 명령 인터페이스로 만든 SK Hynix AiM 제품 아키텍처.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true,
+          "note": "sense amp 직후 digital-PIM"
+        },
+        {
+          "v": "Periphery",
+          "note": "채널 공유 global buffer"
+        }
+      ],
+      "evidence": "§I; §III-B Fig.4·5"
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "PNM",
+          "primary": true
+        }
+      ],
+      "evidence": "§I (digital-PIM, near-bank 로직 추가)"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "HBM",
+          "primary": true,
+          "note": "HBM2E"
+        }
+      ],
+      "note": "DDR·LPDDR·GDDR 적용 가능 명시",
+      "evidence": "§III-E; §IV Table III"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "FixedFunction",
+          "primary": true,
+          "note": "MAC + pipelined adder tree만"
+        }
+      ],
+      "precision": [
+        "BF16"
+      ],
+      "evidence": "§I 기여(1)(a); §III-A; §IV Table III"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "Bank",
+          "primary": true
+        },
+        {
+          "v": "PseudoChannel"
+        },
+        {
+          "v": "Channel"
+        }
+      ],
+      "evidence": "§III-C; §IV Table III (8ch × 2pseudo × 16bank)"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Operator",
+          "primary": true,
+          "note": "MV product 단위"
+        }
+      ],
+      "evidence": "§IV"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Vector"
+        },
+        {
+          "v": "DRAMRow"
+        }
+      ],
+      "evidence": "§III-D; §IV"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "CustomDRAMCommand",
+          "primary": true,
+          "note": "COMP/G_ACT/GWRITE/READRES"
+        },
+        {
+          "v": "MemoryMappedIO"
+        }
+      ],
+      "evidence": "§III-D Table I"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "Host-Driven-NoAutonomousWrite",
+          "primary": true
+        }
+      ],
+      "note": "원래 Other: Host-orchestrated 였고 v1.1에서 승격됨. 명시적 코히런스 프로토콜은 다루지 않음(아래 not_addressed).",
+      "evidence": "§III-C·E"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "KernelBoundarySync",
+          "estimated": true
+        }
+      ],
+      "evidence": "명시 없음 / 추정"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Qualitative",
+          "primary": true
+        }
+      ],
+      "metrics": [
+        "ArithmeticIntensity"
+      ],
+      "note": "1 MAC/matrix byte 연산강도 추론",
+      "evidence": "§I; §II-B"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Static-Programmer",
+          "primary": true
+        }
+      ],
+      "evidence": "§IV"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "OffChipBandwidth"
+        },
+        {
+          "v": "DataMovementEnergy"
+        },
+        {
+          "v": "CommandBandwidth",
+          "note": "v1.2 승격 (ganged/complex 명령으로 자체 최적화)"
+        }
+      ],
+      "evidence": "§V-A·B·E"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "MemoryController-orchestrated"
+        }
+      ],
+      "ir_level": [],
+      "note": "컴파일러·프로그래밍 모델은 companion 산업 논문(ISCA'21)에 넘김",
+      "evidence": "§III-C·D"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "evidence": "OS/런타임 자동 오프로드 서술 없음"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "PeripheryAddition",
+          "primary": true
+        }
+      ],
+      "area_overhead": "≈20% (§II: no more than 25%)",
+      "evidence": "§I; §II"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "SimulationOnly",
+          "primary": true
+        }
+      ],
+      "evidence": "§IV"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "LLM-Inference",
+          "segment": "FFN",
+          "note": "BERT FC층"
+        },
+        {
+          "v": "RNN-LSTM",
+          "note": "GNMT"
+        },
+        {
+          "v": "Embedding-Recommendation",
+          "note": "DLRM"
+        },
+        {
+          "v": "MLP",
+          "note": "v1.2 승격"
+        }
+      ],
+      "note": "가속 구간은 FC/FFN only",
+      "evidence": "§II-B; §IV Table II"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "CycleAccurateSim",
+          "primary": true
+        }
+      ],
+      "evidence": "§IV"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "DRAMSim2"
+        },
+        {
+          "v": "GPGPU-Sim"
+        }
+      ],
+      "evidence": "§IV"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "Unvalidated",
+          "primary": true
+        }
+      ],
+      "note": "해석 모델과 시뮬레이션이 2% 이내 자기 일관, 그러나 시뮬레이터 실측 대조 없음, 핵심 timing 비공개",
+      "evidence": "§III-F; §V"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "IdealMemory",
+          "note": "Ideal Non-PIM, 무한 연산"
+        },
+        {
+          "v": "GPU",
+          "note": "Titan V"
+        }
+      ],
+      "evidence": "§V"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "HostTLB"
+        },
+        {
+          "v": "PhysicallyContiguous-Reserved",
+          "note": "super page"
+        }
+      ],
+      "evidence": "§III-A·E (p.8)"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "BankAligned"
+        },
+        {
+          "v": "SubarrayAligned"
+        }
+      ],
+      "note": "DRAM 행 전체 폭 chunk 인터리빙, 입력 재사용 우선",
+      "evidence": "§III-E"
+    },
+    "13_econ": {
+      "tags": [
+        {
+          "v": "FabricationOwner: DRAMVendor"
+        },
+        {
+          "v": "ProcessConflict",
+          "note": "부분 — DRAM 공정 트랜지스터로 MAC 구현"
+        }
+      ],
+      "note": "'가속 대가로 더 높은 가격에 판매' 프리미엄 논증(§III-D). 정량 수율·비용 분석은 없음.",
+      "evidence": "§III-D; §I"
+    },
+    "14_lineage": {
+      "inherited": [
+        "analog-PIM 계보",
+        "digital-PIM 계보",
+        "McDRAM(Hynix 2016 concurrent)"
+      ],
+      "coined": [
+        "AiM (상용 Accelerator-in-Memory 명명)"
+      ],
+      "transmitted": [
+        {
+          "to": "HBM-PIM (Samsung)",
+          "form": "Direct"
+        },
+        {
+          "to": "GDDR6-AiM (SK Hynix)",
+          "form": "Direct"
+        }
+      ],
+      "abandoned": [],
+      "evidence": "§I; §VI; 후속 산업 제품"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "8a_offload_mech",
+      "silence": "OutOfScope",
+      "partial_evaded": true,
+      "note": "SW 계층을 companion 논문에 넘긴 것은 정당하나, 'DRAM과 구별 불가' 강점이 실은 SW 부담을 호스트로 떠넘긴 것이라 그 부담 소재를 침묵한 것은 부분적 회피"
+    },
+    {
+      "axis": "5b_coherency",
+      "silence": "OutOfScope",
+      "note": "호스트 구동이라 전통적 코히런스 문제 부재. 다만 super page 물리 연속 할당·AiM/비-AiM 데이터 행 분리는 사실상의 배치 코히런스인데 명시적으로 다루지 않음"
+    },
+    {
+      "axis": "8b_os_runtime",
+      "silence": "OutOfScope",
+      "note": "오프로드 대상이 정적(FC/MV층)이라 동적 판정 로직이 이 설계엔 불필요"
+    }
+  ],
+  "relations": [
+    {
+      "target": "attacc-apslos-24",
+      "shared_axes": [
+        "2a_approach",
+        "2b_technology",
+        "10_application"
+      ],
+      "divergent_axes": [
+        "10_application:segment"
+      ],
+      "type": "complements",
+      "direction": "undirected",
+      "note": "Newton=FFN/FC, AttAcc=attention/decode·KV. Newton이 Q4에서 비운 attention 자리를 AttAcc이 메움 → 합치면 transformer 전 구간"
+    },
+    {
+      "target": "pimflow-cgo-23",
+      "shared_axes": [
+        "2b_technology",
+        "10_application"
+      ],
+      "divergent_axes": [
+        "1_location"
+      ],
+      "type": "disjoint",
+      "direction": "undirected",
+      "note": "층위 다름 — PIMFlow는 Newton류 장치를 대상으로 그래프를 낮추는 HostOnly 컴파일러. Newton §8a 공백을 겨냥"
+    },
+    {
+      "target": "intelligent-ram-micro-journal-97",
+      "shared_axes": [
+        "14_lineage"
+      ],
+      "divergent_axes": [
+        "3_programmability"
+      ],
+      "type": "lineage",
+      "direction": "from_target",
+      "note": "원형의 '메모리에 연산을'이 20여 년 뒤 최소 MAC 상용 제품으로 Transformed. 원형=full core, Newton=FixedFunction"
+    },
+    {
+      "target": "smart-memories-isca-00",
+      "shared_axes": [
+        "14_lineage"
+      ],
+      "divergent_axes": [
+        "3_programmability"
+      ],
+      "type": "lineage",
+      "direction": "from_target",
+      "note": "원형=Reconfigurable, Newton=FixedFunction. 계보상 조상"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#13",
+      "resolution": "pass",
+      "note": "Location=Bank + 디지털 MAC 로직 추가 → Approach=PNM. taxonomy v1.1 검사 #13이 이 판정을 이미 명문화함(Newton에서 승격)"
+    }
+  ]
+}

@@ -1,0 +1,261 @@
+{
+  "schema_version": "0.1",
+  "id": "cent-apslos-25",
+  "title": "PIM Is All You Need: A CXL-Enabled GPU-Free System for Large Language Model Inference",
+  "bib": "Y. Gu, A. Khadem, S. Umesh, N. Liang, X. Servot, O. Mutlu, R. Iyer, and R. Das, \"PIM Is All You Need: A CXL-Enabled GPU-Free System for Large Language Model Inference,\" in Proc. 30th ACM Int. Conf. on Architectural Support for Programming Languages and Operating Systems (ASPLOS), Vol. 2, 2025, pp. 1-16.",
+  "year": 2025,
+  "mode": "standard",
+  "file": "pim/frontline/cent-apslos-25.pdf",
+  "digest": "pim/digests/cent-apslos-25.md",
+  "one_line": "GPU가 LLM 디코딩(memory-bound, 낮은 연산 강도)에 과잉 스펙인 자리에서, CENT는 CXL로 묶은 GDDR6-PIM 뱅크 단위 MAC 유닛(근접 뱅크)과 별도 PNM 유닛(RISC-V+가속기)의 계층 구조로 트랜스포머 블록 전체를 GPU 없이 처리해 처리량·에너지·TCO 세 축을 동시에 개선한다.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        { "v": "Bank", "primary": true, "note": "근접 뱅크 MAC PU, 16-way 리덕션 트리" },
+        { "v": "NearMemDevice", "note": "PNM 유닛(누산기·리덕션 트리·지수 가속기·RISC-V)이 CXL 컨트롤러 내부, DRAM 칩과는 별도 위치" }
+      ],
+      "evidence": "§4.2; Fig.5, Fig.7"
+    },
+    "2a_approach": {
+      "tags": [
+        { "v": "PNM", "primary": true, "note": "뱅크 물리 동작이 아니라 디지털 MAC 로직 추가 — 일관성 검사 #13과 동일 패턴(Newton 선례)" }
+      ],
+      "evidence": "§1; §4.2 (논문 자신은 'PIM'이라 부르나 통제어휘 기준 PNM — §10 프레임 적합성 메모 참조)"
+    },
+    "2b_technology": {
+      "tags": [
+        { "v": "GDDR", "primary": true, "note": "GDDR6-PIM 채널" },
+        { "v": "CXL-attached", "note": "CXL 3.0 메모리 확장으로 다중 장치 스케일링" }
+      ],
+      "evidence": "§1; §4; Table 1, 4"
+    },
+    "3_programmability": {
+      "tags": [
+        { "v": "FixedFunction", "primary": true, "note": "근접 뱅크 MAC 리덕션 트리, 재프로그래밍 불가" },
+        { "v": "ProgrammableCore", "note": "PNM의 8x BOOM 2-wide RISC-V 코어 — 드문 연산·미래 확장용" }
+      ],
+      "precision": ["BF16"],
+      "evidence": "§4.2; Fig.7"
+    },
+    "4a_parallelism": {
+      "tags": [
+        { "v": "Bank", "primary": true, "note": "16개 뱅크 PU가 ACTab/PREab로 동시 구동" },
+        { "v": "Channel" },
+        { "v": "MultiDevice", "note": "CXL 스위치로 최대 128개 장치까지 스케일 아웃(§7.4)" }
+      ],
+      "evidence": "§4.2; §7.4, Fig.19"
+    },
+    "4b_offload": {
+      "tags": [
+        { "v": "Operator", "primary": true, "note": "GEMV 컴파일 예시(Fig.11)" },
+        { "v": "Function", "note": "트랜스포머 블록 전체가 호스트 왕복 없이 한 CXL 장치 안에서 연쇄 실행" }
+      ],
+      "evidence": "§5.4, Fig.10; §5.6, Fig.11"
+    },
+    "4c_data_gran": {
+      "tags": [
+        { "v": "Vector", "primary": true, "note": "256비트 Shared Buffer 세그먼트(16x BF16)" },
+        { "v": "DRAMRow", "note": "WR_ABK가 16개 뱅크의 동일 row/column에 동시 기록" }
+      ],
+      "evidence": "§4.2, §4.3, Table 2·3"
+    },
+    "5a_comm": {
+      "tags": [
+        { "v": "CustomDRAMCommand", "primary": true, "note": "MAC_ABK/ACTab/PREab 등 CENT ISA" },
+        { "v": "CXL.mem", "note": "SEND_CXL/RECV_CXL/BCAST_CXL, CXL 3.0 프로토콜 확장" },
+        { "v": "PacketProtocol", "note": "PBR flit 기반 라우팅, H-slot 예약 코드로 broadcast 구현" }
+      ],
+      "evidence": "§4.1, Fig.5·6; §4.2, Table 2·3"
+    },
+    "5b_coherency": {
+      "tags": [
+        { "v": "Host-Driven-NoAutonomousWrite", "primary": true, "note": "호스트가 명령 버퍼에 명령을 채우고 결과를 회수 — Newton/GDDR6-AiM 계보와 동일 패턴" }
+      ],
+      "evidence": "§4.2; §5.5 (top-k 샘플링만 호스트 CPU에서 실행)"
+    },
+    "5c_consistency": {
+      "tags": [
+        { "v": "KernelBoundarySync", "estimated": true }
+      ],
+      "evidence": "명시 없음 / 추정 — 파이프라인 단계 간 동기화가 명령 스트림 순서로 암묵적으로만 이뤄짐"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        { "v": "Quantitative-Profiling", "primary": true }
+      ],
+      "metrics": ["ArithmeticIntensity", "BandwidthUtilization"],
+      "note": "vLLM으로 배치·컨텍스트 길이별 처리량·GPU 이용률(21%) 실측 (Fig.1, 2)",
+      "evidence": "§2, Fig.1·2"
+    },
+    "6b_workload_class": {
+      "tags": [
+        { "v": "Static-Programmer", "primary": true, "note": "TP/PP 매핑 전략을 배포 시점에 설정" },
+        { "v": "Static-Compiler", "note": "in-house 컴파일러가 명령 생성" }
+      ],
+      "evidence": "§5.6"
+    },
+    "7a_solved": {
+      "tags": [
+        { "v": "OffChipBandwidth", "note": "GPU 외부 대역폭(A100 2TB/s) 대비 PIM 내부 대역폭(CENT 512TB/s)" },
+        { "v": "DataMovementEnergy", "note": "2.9배 낮은 에너지, 0.6pJ/bit MAC_ABK" },
+        { "v": "CapacityLimit", "note": "CXL로 다중 저밀도 PIM 장치를 엮어 대용량 LLM 파라미터 수용" }
+      ],
+      "evidence": "§2; §7.1, §7.2"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        { "v": "CompilerPass", "primary": true, "note": "in-house 컴파일러가 연산·데이터 이동 명령 생성" },
+        { "v": "LibraryAPI", "note": "CENT 라이브러리 Python API(GEMV, LayerNorm, RMSNorm, RoPE 등)" }
+      ],
+      "ir_level": ["Custom-IR"],
+      "evidence": "§5.6, Fig.11"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        { "v": "Not addressed" }
+      ],
+      "evidence": "다중 CXL 장치·다중 테넌트 스케줄링, 디바이스 드라이버, 장애 처리 등 OS/런타임 계층 서술 없음"
+    },
+    "9a_hw_change": {
+      "tags": [
+        { "v": "PeripheryAddition", "primary": true, "note": "GDDR6-PIM 뱅크 주변 근접 뱅크 MAC 유닛" },
+        { "v": "NewMemoryArch", "note": "PIM+PNM+CXL 스위치 네트워크 전체가 새 메모리 서브시스템 구조" }
+      ],
+      "area_overhead": "CXL 컨트롤러 커스텀 로직 7.85mm²@28nm → 추정 19.0mm²@7nm (Table 5)",
+      "evidence": "§4.2; §6, Table 5·6"
+    },
+    "9b_verify": {
+      "tags": [
+        { "v": "SimulationOnly", "primary": true, "note": "수정된 Ramulator2 기반 PIM/PNM 사이클 시뮬레이션" },
+        { "v": "SynthesisOnly", "note": "CXL 컨트롤러 RTL을 TSMC 28nm + Synopsys DC로 합성 후 7nm 스케일링" }
+      ],
+      "evidence": "§6"
+    },
+    "10_application": {
+      "tags": [
+        { "v": "LLM-Inference", "primary": true, "segment": "Prefill+Decode(전 구간)", "note": "Llama2 7B/13B/70B, §7.3에서 GPT3-175B·OPT-66B 추가" }
+      ],
+      "evidence": "§5.5; §6; §7.3"
+    },
+    "11a_eval_method": {
+      "tags": [
+        { "v": "CycleAccurateSim", "primary": true, "note": "Ramulator2 기반 PIM/PNM" },
+        { "v": "AnalyticalModel", "note": "CXL 장치 간 통신 지연(CXL latency + PCIe 6.0 대역폭 기반)" },
+        { "v": "SynthesisEstimate", "note": "CXL 컨트롤러 면적·전력" }
+      ],
+      "evidence": "§6"
+    },
+    "11b_tools": {
+      "tags": [
+        { "v": "Ramulator2", "primary": true },
+        { "v": "Synopsys-DC" },
+        { "v": "In-House", "note": "AiM 기능 시뮬레이터(GitHub 공개)" },
+        { "v": "Other: MicronDRAMPowerCalculator" }
+      ],
+      "evidence": "§6"
+    },
+    "11c_validation": {
+      "tags": [
+        { "v": "Unvalidated", "primary": true, "note": "성능(처리량·지연) 수치는 실리콘·타 시뮬레이터 교차검증 언급 없음" },
+        { "v": "Vendor-Datasheet", "note": "전력 모델은 삼성 8Gb GDDR6 SGRAM 데이터시트 실측 전류/전압 사용" }
+      ],
+      "evidence": "§6"
+    },
+    "11d_baseline": {
+      "tags": [
+        { "v": "GPU", "primary": true, "note": "NVIDIA A100 80GB x4, 2020년 출시 세대" },
+        { "v": "PriorPIM", "note": "CXL-PNM, AttAcc, NeuPIM과 §7.3에서 직접 비교" }
+      ],
+      "evidence": "§6, Table 4; §7.3"
+    },
+    "12a_translation": {
+      "tags": [
+        { "v": "Not addressed" }
+      ],
+      "evidence": "컴파일러가 물리 주소(row_addr, shared_buffer_addr)를 직접 생성하는 명시적 프로그래밍 모델이라 전통적 가상-물리 변환 계층이 설계상 성립하지 않음(Fig.11)"
+    },
+    "12b_mapping": {
+      "tags": [
+        { "v": "Compiler-Directed-Layout", "primary": true, "note": "in-house 컴파일러가 벡터·행렬 피연산자 배치 결정" },
+        { "v": "BankAligned", "note": "행렬을 행 단위로 16개 뱅크에 분산" },
+        { "v": "ChannelPartitioned" }
+      ],
+      "evidence": "§5.6, Fig.11; §4.2"
+    },
+    "13_econ": {
+      "tags": [
+        { "v": "FabricationOwner: DRAMVendor", "note": "GDDR6-PIM 칩 자체가 DRAM 제조사 공정 변경을 요구" },
+        { "v": "NRE-Amortization", "note": "Fig.12, 다이·패키징·NRE 비용 분해" },
+        { "v": "VolumeRequirement", "note": "생산량 300만 대 추정(2023 NVIDIA 데이터센터 GPU 출하량의 10%, 전력비 8배 스케일링)" },
+        { "v": "Yield", "note": "7nm 웨이퍼 결함 밀도 0.0015/mm² 기준 다이 비용 계산" }
+      ],
+      "note": "표준 모드 논문이나 원형 논문 수준으로 경제 논증을 깊게 다룸 — §10 프레임 적합성 메모 참조",
+      "evidence": "§6, Table 5·6, Fig.12"
+    },
+    "14_lineage": {
+      "inherited": [
+        "근접 뱅크 디지털 MAC PIM 계보(Newton → GDDR6-AiM [56][60])",
+        "CXL.mem 프로토콜(CXL 3.0)"
+      ],
+      "coined": [
+        "CENT ISA (근접 뱅크 산술 + 데이터 이동 명령 집합)",
+        "hierarchical PIM-PNM 아키텍처 용어",
+        "CXL broadcast 원시 연산(H-slot 예약 코드 재활용)"
+      ],
+      "transmitted": [],
+      "abandoned": [],
+      "evidence": "§1, §4.1, §4.2; 2025년 발표라 후속 전달 사례는 아직 확인 불가"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "8b_os_runtime",
+      "silence": "Evaded",
+      "note": "GPU-free 프로덕션 서버를 표방하면서 다중 테넌트 스케줄링·디바이스 드라이버·장애 처리 같은 OS/런타임 계층을 다루지 않음 — 실배포에서는 피할 수 없는 문제"
+    },
+    {
+      "axis": "12a_translation",
+      "silence": "OutOfScope",
+      "note": "컴파일러가 물리 주소를 직접 생성하는 명시적 프로그래밍 모델이라 가상-물리 변환 문제 자체가 설계상 성립하지 않음. 정당한 침묵"
+    }
+  ],
+  "relations": [
+    {
+      "target": "newton-micro-20",
+      "shared_axes": ["1_location", "2a_approach", "3_programmability"],
+      "divergent_axes": ["10_application", "1_location"],
+      "type": "premise",
+      "direction": "to_target",
+      "note": "CENT의 PIM 채널(근접 뱅크 MAC, GDDR6)은 Newton → GDDR6-AiM([56][60], SK Hynix) 계보를 직접 인용하며 그 위에 PNM 계층과 CXL 스케일링을 얹었다. Newton=FFN/FC GEMV만, CENT=트랜스포머 블록 전체"
+    },
+    {
+      "target": "attacc-apslos-24",
+      "shared_axes": ["10_application", "7a_solved"],
+      "divergent_axes": ["1_location", "4b_offload"],
+      "type": "competes",
+      "direction": "undirected",
+      "note": "둘 다 'LLM 디코딩이 GPU를 놀린다'는 같은 문제를 풀지만, AttAcc은 GPU를 유지한 채 attention 병목만 PIM으로 떼어내고 CENT는 GPU를 아예 없앤다. 논문이 §7.3에서 직접 정량 비교(1.8-3.7배 tokens/$)"
+    }
+  ],
+  "other_tags": [
+    {
+      "axis": "11b_tools",
+      "value": "MicronDRAMPowerCalculator",
+      "reason": "DRAM 전력 모델링에 쓴 벤더 계산기 도구로, 통제어휘의 시뮬레이터·EDA 툴 목록에 없음",
+      "proposal": "일회성 예외. DRAM 전력 모델링에 이 계산기를 쓰는 PIM 논문이 향후 반복되면 승격 재검토",
+      "status": "pending"
+    }
+  ],
+  "consistency_flags": [
+    {
+      "check": "#13",
+      "resolution": "pass",
+      "note": "Location=Bank + 디지털 로직(MAC) 추가 → Approach=PNM. Newton과 동일 패턴, GDDR6-AiM 계보 전반에 안정적으로 적용됨을 재확인"
+    },
+    {
+      "check": "#2",
+      "resolution": "pass",
+      "note": "Location에 NearMemDevice(PNM 유닛) 포함 → Approach=PNM과 정합"
+    }
+  ]
+}

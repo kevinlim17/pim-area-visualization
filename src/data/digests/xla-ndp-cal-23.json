@@ -1,0 +1,336 @@
+{
+  "schema_version": "0.1",
+  "id": "xla-ndp-cal-23",
+  "title": "XLA-NDP: Efficient Scheduling and Code Generation for Deep Learning Model Training on Near-Data Processing Memory",
+  "bib": "(저자 미확인 표기 생략) \"XLA-NDP: Efficient Scheduling and Code Generation for Deep Learning Model Training on Near-Data Processing Memory,\" IEEE Computer Architecture Letters, 2023.",
+  "year": 2023,
+  "mode": "standard",
+  "file": "pim/codelab/xla-ndp-cal-23.pdf",
+  "digest": null,
+  "one_line": "NDPX(near-data 확장 메모리) 대상으로 TensorFlow XLA를 확장 — GPU·NDPX 비용 모델로 커널을 겹쳐 스케줄하고 템플릿 기반 코드 생성으로 DL 학습을 오프로드한 컴파일러·런타임.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "HostOnly",
+          "primary": true,
+          "note": "하드웨어 무변경 — NDPX를 대상으로 하는 컴파일러/런타임"
+        }
+      ],
+      "explored": "artifact: HostOnly (컴파일러/런타임). 타깃 하드웨어 = NDPX(NearMemDevice, memory-semantic interconnect로 GPU 연결) — 기존 [8], 본 논문이 만들지 않음",
+      "evidence": "§I; §II-A"
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "Agnostic",
+          "primary": true,
+          "note": "SW 방법론 — 특정 PIM 방식에 비종속, NDPX(PNM 계열) 대상"
+        }
+      ],
+      "evidence": "§II-A"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "NVM-generic",
+          "note": "NDPX 메모리 확장, 특정 기술 비종속"
+        }
+      ],
+      "evidence": "§II-A"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "ISAExtension",
+          "note": "NDPX는 RISC-style ISA [8]"
+        }
+      ],
+      "precision": [
+        "FP16",
+        "FP32"
+      ],
+      "evidence": "§II-A"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "MultiDevice",
+          "primary": true,
+          "note": "GPU + NDPX 디바이스 병렬"
+        }
+      ],
+      "evidence": "§I; §II"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Kernel",
+          "primary": true,
+          "note": "NDPX 커널 단위 오프로드, GPU 커널과 오버랩"
+        }
+      ],
+      "evidence": "Abstract; §II"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Tensor"
+        }
+      ],
+      "evidence": "§II"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "DMA",
+          "note": "memory-semantic interconnect"
+        },
+        {
+          "v": "SharedMemory"
+        }
+      ],
+      "evidence": "§II-A"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "evidence": "—"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "KernelBoundarySync",
+          "estimated": true,
+          "note": "GPU-NDPX 커널 오버랩 스케줄, 경계 동기 추정"
+        }
+      ],
+      "evidence": "§II"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Quantitative-Profiling",
+          "note": "랜덤 샘플로 NDPX 커널 런타임 비용 모델 학습"
+        }
+      ],
+      "metrics": [
+        "EnergyBreakdown"
+      ],
+      "evidence": "§II"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Profile-Guided",
+          "primary": true,
+          "note": "GPU·NDPX 비용 기반 오프로드 판정"
+        },
+        {
+          "v": "Search-Based",
+          "note": "스케줄링 최적화"
+        }
+      ],
+      "evidence": "Abstract; §II"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "HostPIMTransfer",
+          "note": "커널 오버랩으로 병렬성 극대화"
+        },
+        {
+          "v": "ProgrammingBurden",
+          "note": "자동 컴파일·스케줄·코드생성"
+        },
+        {
+          "v": "ComputeThroughput",
+          "note": "GPU 대비 24%(최대 41%) 학습 speedup"
+        }
+      ],
+      "evidence": "Abstract; §II"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "CompilerPass",
+          "primary": true,
+          "note": "TensorFlow XLA 확장, 템플릿 기반 코드 생성기"
+        },
+        {
+          "v": "FrameworkPlugin",
+          "note": "TensorFlow XLA"
+        }
+      ],
+      "ir_level": [
+        "XLA-HLO"
+      ],
+      "evidence": "Abstract; §I; §II"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "RuntimeScheduler",
+          "primary": true,
+          "note": "device-parallel 스케줄 확장 — NDPX·GPU 오버랩"
+        }
+      ],
+      "evidence": "§I; §II"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "NoHWChange",
+          "primary": true,
+          "note": "컴파일러/런타임 — 기존 NDPX 하드웨어 대상"
+        }
+      ],
+      "evidence": "§I"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "SimulationOnly",
+          "note": "시뮬레이터 평가"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "CNN",
+          "note": "DL 학습 모델"
+        },
+        {
+          "v": "RNN-LSTM",
+          "note": "LSTM 최대 41%"
+        },
+        {
+          "v": "LLM-Training",
+          "note": "DL model training — 학습 워크로드"
+        }
+      ],
+      "note": "4개 DL 모델 학습",
+      "evidence": "Abstract; §III"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "CycleAccurateSim"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "In-House",
+          "note": "시뮬레이터"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "Unvalidated"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "GPU",
+          "primary": true,
+          "note": "GPU baseline 대비 24% 평균, 41% 최대"
+        }
+      ],
+      "evidence": "Abstract; §III"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "evidence": "—"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "Compiler-Directed-Layout",
+          "note": "컴파일러가 computation mapping"
+        }
+      ],
+      "evidence": "§II"
+    },
+    "13_econ": {
+      "tags": [],
+      "evidence": ""
+    },
+    "14_lineage": {
+      "inherited": [
+        "TensorFlow XLA",
+        "device-parallel scheduling [14]",
+        "cost model [9]·code-gen back-end [3]",
+        "NDPX RISC-style ISA [8]"
+      ],
+      "coined": [
+        "NDPX 커널·GPU 커널 오버랩 스케줄 + 템플릿 코드생성 통합"
+      ],
+      "transmitted": [],
+      "abandoned": [],
+      "evidence": "§I"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "5b_coherency",
+      "silence": "OutOfScope",
+      "partial_evaded": false,
+      "note": "컴파일러 논문 — 코히런시는 NDPX 하드웨어/인터커넥트 몫"
+    },
+    {
+      "axis": "12a_translation",
+      "silence": "OutOfScope",
+      "partial_evaded": false,
+      "note": "주소 번역 미논의"
+    },
+    {
+      "axis": "13_econ",
+      "silence": "OutOfScope",
+      "partial_evaded": false,
+      "note": "제조·경제 논증 없음"
+    }
+  ],
+  "relations": [
+    {
+      "target": "pimflow-cgo-23",
+      "shared_axes": [
+        "1_location",
+        "8a_offload_mech",
+        "6b_workload_class"
+      ],
+      "divergent_axes": [
+        "10_application",
+        "8a_offload_mech:ir_level"
+      ],
+      "type": "complements",
+      "direction": "undirected",
+      "note": "둘 다 PIM 오프로드 컴파일러(HostOnly). XLA-NDP=XLA-HLO·DL 학습, PIMFlow=TVM·CNN 추론. 프레임워크·워크로드가 상보"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#4",
+      "resolution": "pass",
+      "note": "HostOnly → NoHWChange 정합, 실질 기여가 축 8(SW Stack)"
+    }
+  ]
+}

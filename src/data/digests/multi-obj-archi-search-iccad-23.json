@@ -1,0 +1,363 @@
+{
+  "schema_version": "0.1",
+  "id": "multi-obj-archi-search-iccad-23",
+  "title": "Multi-Objective Architecture Search and Optimization for Heterogeneous Neuromorphic Architecture",
+  "bib": "J. Park, Y. Shin, and H. Sung, \"Multi-Objective Architecture Search and Optimization for Heterogeneous Neuromorphic Architecture,\" in Proc. IEEE/ACM Int. Conf. Computer-Aided Design (ICCAD), 2023, doi:10.1109/ICCAD57390.2023.10323779.",
+  "year": 2023,
+  "mode": "standard",
+  "file": "pim/codelab/multi-obj-archi-search-and-opt-iccad-23.pdf",
+  "digest": null,
+  "one_line": "기존 뉴로모픽 DSE는 레이어 배치·자원 할당만 보고 tile/PE/SA 크기 같은 회로 수준 PPA를 무시하며 동종(homogeneous) 타일만 가정하던 자리에, 이 논문은 'big-tile little-tile' 이종 아키텍처를 정의하고 NeuroSim·BookSim 위에서 계층적 beam search로 Pareto-front를 탐색해 CNN당 PPA를 최대 40.1% 개선하는 end-to-end 아키텍처 탐색 도구다.",
+  "axes": {
+    "1_location": {
+      "tags": [
+        {
+          "v": "HostOnly",
+          "primary": true,
+          "note": "artifact: 아키텍처 탐색·최적화 도구. HW 미제안"
+        }
+      ],
+      "explored": "analog CiM ReRAM crossbar 타일 계층(tile-PE-SA), DataArray에서 MVM",
+      "evidence": "§I; §II Fig.1; §IV"
+    },
+    "2a_approach": {
+      "tags": [
+        {
+          "v": "Agnostic",
+          "primary": true,
+          "note": "artifact DSE 도구"
+        },
+        {
+          "v": "PUM",
+          "note": "explored: analog CiM — ReRAM 셀 물리(Kirchhoff)로 MVM"
+        }
+      ],
+      "evidence": "§II"
+    },
+    "2b_technology": {
+      "tags": [
+        {
+          "v": "ReRAM",
+          "primary": true,
+          "note": "explored: 2D crossbar, ADC/DAC"
+        }
+      ],
+      "evidence": "§II Fig.1a-c"
+    },
+    "3_programmability": {
+      "tags": [
+        {
+          "v": "ConfigurableFixed",
+          "primary": true,
+          "note": "explored: tile/PE/SA 크기를 구성 — 고정 MVM 기능, 파라미터만 조정"
+        }
+      ],
+      "precision": [
+        "Analog-MultiLevel"
+      ],
+      "acim": {
+        "adc_dac": "present (NeuroSim 모델)",
+        "crossbar": "SA(synaptic array) 크기가 탐색 변수",
+        "note": "ADC/DAC 해상도·면적 비중은 NeuroSim이 추정하나 논문 본문에 명시 수치는 제한적"
+      },
+      "evidence": "§II; §IV"
+    },
+    "4a_parallelism": {
+      "tags": [
+        {
+          "v": "Subarray",
+          "primary": true,
+          "note": "explored: SA(synaptic array)"
+        },
+        {
+          "v": "Die",
+          "note": "tile mesh 계층"
+        }
+      ],
+      "evidence": "§II Fig.1d (tile-PE-SA)"
+    },
+    "4b_offload": {
+      "tags": [
+        {
+          "v": "Operator",
+          "primary": true,
+          "note": "explored: NN 레이어를 타일에 매핑"
+        }
+      ],
+      "evidence": "§I; §IV"
+    },
+    "4c_data_gran": {
+      "tags": [
+        {
+          "v": "Tensor",
+          "note": "weight/input 매핑"
+        }
+      ],
+      "evidence": "§II Fig.1c"
+    },
+    "5a_comm": {
+      "tags": [
+        {
+          "v": "NoC-Mesh",
+          "primary": true,
+          "note": "explored: mesh interconnect, BookSim으로 모델링"
+        }
+      ],
+      "evidence": "§I; §III (BookSim)"
+    },
+    "5b_coherency": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "note": "독립형 CiM 가속기 — 호스트-PIM 코히런스 프레임이 DSE 대상 아님(OutOfScope)",
+      "evidence": "—"
+    },
+    "5c_consistency": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "evidence": "—"
+    },
+    "6a_workload_analysis": {
+      "tags": [
+        {
+          "v": "Quantitative-Profiling",
+          "primary": true,
+          "note": "NeuroSim으로 회로 수준 PPA(latency/energy/area)를 후보마다 추정"
+        }
+      ],
+      "metrics": [
+        "EnergyBreakdown"
+      ],
+      "evidence": "§III; §IV"
+    },
+    "6b_workload_class": {
+      "tags": [
+        {
+          "v": "Search-Based",
+          "primary": true,
+          "note": "Pareto-front + 계층적 beam search로 이종 아키텍처 탐색공간 가지치기"
+        }
+      ],
+      "evidence": "§I; §IV"
+    },
+    "7a_solved": {
+      "tags": [
+        {
+          "v": "DesignSpaceCost",
+          "primary": true,
+          "note": "회로 수준 PPA 추정을 갖춘 이종 뉴로모픽 DSE 도구를 최초 제공(선행은 layer 배치·자원 할당만)"
+        },
+        {
+          "v": "ComputeThroughput",
+          "note": "size heterogeneity로 SA/PE 미활용 감소"
+        }
+      ],
+      "evidence": "§I; §IV·V"
+    },
+    "8a_offload_mech": {
+      "tags": [
+        {
+          "v": "DSE-Tool",
+          "note": "v1.3 승격 (ArchitectureSearchTool)"
+        }
+      ],
+      "ir_level": [],
+      "note": "컴파일러 오프로드가 아니라 아키텍처 탐색·매핑 도구. 기존 8a 태그(Library/CompilerPass 등)가 SW 오프로드 계층을 전제하는 것과 성격이 다름",
+      "evidence": "§IV"
+    },
+    "8b_os_runtime": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "evidence": "—"
+    },
+    "9a_hw_change": {
+      "tags": [
+        {
+          "v": "NoHWChange",
+          "primary": true,
+          "note": "artifact: 탐색 도구. explored는 NewDevice(ReRAM) 아키텍처 후보를 생성만"
+        }
+      ],
+      "evidence": "§IV"
+    },
+    "9b_verify": {
+      "tags": [
+        {
+          "v": "SimulationOnly",
+          "primary": true,
+          "note": "NeuroSim(회로 수준 PPA) + BookSim(NoC)"
+        }
+      ],
+      "evidence": "§III"
+    },
+    "10_application": {
+      "tags": [
+        {
+          "v": "CNN",
+          "primary": true,
+          "note": "다양한 convolutional model"
+        }
+      ],
+      "evidence": "§V"
+    },
+    "11a_eval_method": {
+      "tags": [
+        {
+          "v": "CircuitSim",
+          "primary": true,
+          "note": "NeuroSim 회로 수준 PPA 추정"
+        },
+        {
+          "v": "AnalyticalModel",
+          "note": "BookSim NoC"
+        }
+      ],
+      "evidence": "§III; §V"
+    },
+    "11b_tools": {
+      "tags": [
+        {
+          "v": "NeuroSim"
+        },
+        {
+          "v": "In-House",
+          "note": "hetero-neurosim-search (github 공개)"
+        }
+      ],
+      "evidence": "§I; §III"
+    },
+    "11c_validation": {
+      "tags": [
+        {
+          "v": "Unvalidated",
+          "primary": true,
+          "note": "NeuroSim 회로 모델에 의존, 실측 대조 없음"
+        }
+      ],
+      "evidence": "§V"
+    },
+    "11d_baseline": {
+      "tags": [
+        {
+          "v": "PriorPIM",
+          "primary": true,
+          "note": "동종(homogeneous) NeuroSim 아키텍처"
+        }
+      ],
+      "note": "PPA 40.1%/19.3%/4.4% 개선. DSE 논문이므로 이상적 baseline은 다른 '탐색 전략'이어야 하는데, 탐색 비용 절감은 보고하나 random/전수 탐색과의 정면 대조는 제한적 — §Evaluation 심문거리",
+      "evidence": "§V"
+    },
+    "12a_translation": {
+      "tags": [
+        {
+          "v": "Not addressed"
+        }
+      ],
+      "evidence": "—"
+    },
+    "12b_mapping": {
+      "tags": [
+        {
+          "v": "Compiler-Directed-Layout",
+          "primary": true,
+          "note": "탐색이 레이어→타일/PE/SA 매핑을 결정"
+        }
+      ],
+      "evidence": "§IV"
+    },
+    "13_econ": {
+      "tags": [
+        {
+          "v": "NoEconomicArgument"
+        }
+      ],
+      "note": "SK Hynix 지원이나 논문 내 경제 논증 없음",
+      "evidence": "§I 각주"
+    },
+    "14_lineage": {
+      "inherited": [
+        "NeuroSim [8]",
+        "BookSim [13]",
+        "analog ReRAM CiM [3]-[6]",
+        "Pareto-front search [14]"
+      ],
+      "coined": [
+        "heterogeneous 'big-tile little-tile' 뉴로모픽 아키텍처",
+        "계층적 beam search 기반 다목적 DSE"
+      ],
+      "transmitted": [],
+      "abandoned": [],
+      "evidence": "§I; §IX"
+    }
+  },
+  "not_addressed": [
+    {
+      "axis": "5b_coherency",
+      "silence": "OutOfScope",
+      "note": "독립형 CiM 가속기 DSE — 호스트-PIM 코히런스 대상 아님"
+    },
+    {
+      "axis": "9a_hw_change",
+      "silence": "OutOfScope",
+      "note": "탐색 도구(artifact)는 HW를 생성만, 구현 아님"
+    },
+    {
+      "axis": "12a_translation",
+      "silence": "OutOfScope"
+    }
+  ],
+  "relations": [
+    {
+      "target": "navcim-pact-24",
+      "shared_axes": [
+        "2a_approach",
+        "2b_technology",
+        "5a_comm",
+        "6b_workload_class"
+      ],
+      "divergent_axes": [],
+      "type": "complements",
+      "direction": "undirected",
+      "note": "둘 다 analog CiM(ReRAM crossbar, NoC-mesh) 설계공간 탐색 도구. 같은 DSE 문제를 다른 탐색 전략으로 — 직접 비교·경쟁 후보"
+    },
+    {
+      "target": "pimflow-cgo-23",
+      "shared_axes": [
+        "6b_workload_class"
+      ],
+      "divergent_axes": [
+        "2a_approach",
+        "2b_technology"
+      ],
+      "type": "disjoint",
+      "direction": "undirected",
+      "note": "같은 연구실(POSTECH Sung 그룹)의 search 계열이나 PIM 가지가 다름 — 이쪽은 PUM analog CiM(ReRAM) NAS, PIMFlow는 PNM digital DRAM-PIM 컴파일. Approach 축에서 갈림"
+    }
+  ],
+  "other_tags": [],
+  "consistency_flags": [
+    {
+      "check": "#1",
+      "resolution": "pass",
+      "note": "explored Location=DataArray → Approach=PUM(analog CiM) 일치"
+    },
+    {
+      "check": "#9",
+      "resolution": "note",
+      "note": "Precision=Analog-MultiLevel이면 ADC 면적·전력 비중이 있어야 하나 논문은 NeuroSim에 위임하고 본문 명시 수치는 제한적 → §7b 후보"
+    },
+    {
+      "check": "DSE",
+      "resolution": "note",
+      "note": "explored(ReRAM 아키텍처)/artifact(탐색 도구) 분리. baseline이 다른 아키텍처(동종)라 DSE 규범상 '탐색 전략' 대조가 더 필요 — 심문거리"
+    }
+  ]
+}
